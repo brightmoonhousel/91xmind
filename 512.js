@@ -274,7 +274,7 @@ app.post("/piwik.php", (req, res) => {
 
 app.get("/xmind/update/latest-win64.yml", (req, res) => {
   return `
-  version: 21.04.10311
+  version: 25.04.10311
   url: >-
     https://www.xmind.cn/xmind/downloads/Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe
   name: Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe
@@ -315,6 +315,26 @@ app.get("/xmind/update/latest-win64.yml", (req, res) => {
     6. Fixed the possible error when entering a space while editing formulas;
     7. Fixed some other known issues.`;
 });
+app.get(
+  "/xmind/downloads/Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe",
+  (req, res) => {
+    const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe`;
+  
+  fs.readFile(filePath, function(err, data) {
+    if (err) {
+      res.writeHead(500, {'Content-Type': 'text/plain'});
+      res.end('Internal Server Error');
+      return;
+    }
+    
+    res.writeHead(200, {
+      'Content-Type': 'application/octet-stream',
+      'Content-Disposition': 'attachment; filename="file.exe"'
+    });
+    res.end(data);
+  });
+  }
+);
 app.proxy("www.xmind.cn");
 
 app.start(3000, "127.0.0.1", options);

@@ -43,10 +43,7 @@ class FuckerServer {
       const path = parsedUrl.pathname;
       // 获取请求方法
       const method = req.method;
-
-      if (path.startsWith("/_res/token/")) {
-        log.success(`[Request][${path}]`);
-      }
+      
       // 将查询参数保存在 req.query 中
       req.query = parsedUrl.query;
 
