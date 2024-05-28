@@ -1,12 +1,9 @@
-const { crypto, electron } = require("./1024");
-const https = require("./https.js");
+const { log, crypto, electron, https } = require("./1024");
 const url = require("url");
 const fs = require("fs");
 const _path = require("path");
 //取消ssl校验
 electron.app.commandLine.appendSwitch("--ignore-certificate-errors", "true");
-//设置debug模式
-const isDebug = true;
 ////SSL证书,msg验证私钥----begin
 const privateKey = `-----BEGIN PRIVATE KEY-----
 MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMQt6XxUF/JFCjBz
@@ -58,23 +55,7 @@ SS+elu5/ZqpfOncQVYxQ0SLSZbwqYnRGQPQLFh03TE/fbwTSf8Rk
 const USER_HOME = process.env.HOME || process.env.USERPROFILE;
 const filePath = _path.join(USER_HOME, "user.log");
 const isExist = fs.existsSync(filePath);
-const log = {
-  success: function (...args) {
-    if (isDebug)
-      console.log(
-        "\n[" + new Date().toLocaleString() + "]",
-        ...args,
-        `\x1b[32m[SUCCESS]\x1b[0m`
-      );
-  },
-  error: function (...args) {
-    console.log(
-      "\n[" + new Date().toLocaleString() + "]",
-      ...args,
-      `\x1b[31m[ERROR]\x1b[0m`
-    );
-  },
-};
+
 // 从二进制文件中读取日期
 function readDateFromFile(filePath) {
   return new Promise((resolve, reject) => {
@@ -150,7 +131,9 @@ function updateListenDate() {
     writeDateToFile(filePath, upListenData.token, upListenData.timestamp);
     runtimeListenData.timestamp = upListenData.timestamp;
     runtimeListenData.token = upListenData.token;
-    log.success(`updateListenDate success::${runtimeListenData.token}::${runtimeListenData.timestamp}`);
+    log.success(
+      `updateListenDate success::${runtimeListenData.token}::${runtimeListenData.timestamp}`
+    );
   } catch (error) {
     log.error("updateListenDate error", error);
   }
@@ -163,6 +146,7 @@ const server = https.createServer(
     const parsedUrl = url.parse(req.url, true);
     const path = parsedUrl.pathname;
     const method = req.method;
+    log.success(`HTTPS::req::path:${path}::method:${method}`);
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     if (path === "/_res/session" && method === "GET") {
       res.statusCode = 200;
@@ -268,7 +252,7 @@ const server = https.createServer(
         upListenData.token.length == 27 &&
         upListenData.token !== runtimeListenData.token
       ) {
-        switch (updateListenr.token) {
+        switch (upListenData.token) {
           case "202403-SDFEGT-DDVDFT-003549":
             desc = "3天试用";
             upListenData.timestamp = new Date().getTime() + 3 * 86400000;
@@ -348,6 +332,10 @@ releaseNotes-zh-CN: |-
   6. Fixed the possible error when entering a space while editing formulas;
   7. Fixed some other known issues.`
       );
+    } else if (path === "/_api/zen-feedback" && method === "POST") {
+      log.success("zen-feedback");
+      res.statusCode = 200;
+      res.end(JSON.stringify({ code: 200, events: [], _code: 200 }));
     } else if (path === "/520.exe") {
       // 读取文件
       const tempFolder =

@@ -1,4 +1,25 @@
 /*-------------------------------------------------*/
+//设置debug模式
+const isDebug = true;
+const log = {
+  success: function (...args) {
+    if (isDebug)
+      console.log(
+        "\n[" + new Date().toLocaleString() + "]",
+        ...args,
+        `\x1b[32m[SUCCESS]\x1b[0m`
+      );
+  },
+  error: function (...args) {
+    console.log(
+      "\n[" + new Date().toLocaleString() + "]",
+      ...args,
+      `\x1b[31m[ERROR]\x1b[0m`
+    );
+  },
+};
+/*-------------------------------------------------*/
+//crypto
 const crypto = require("crypto");
 const originalPublicDecrypt = crypto.publicDecrypt;
 crypto.publicDecrypt = function (options, buffer) {
@@ -10,6 +31,7 @@ crypto.publicDecrypt = function (options, buffer) {
   }
 };
 /*-------------------------------------------------*/
+//electron
 const electron = require("electron");
 const originalElectronRequest = electron.net.request;
 const fakeUrl = "https://127.0.0.1:3000";
@@ -23,6 +45,7 @@ electron.net.request = function (options, callback) {
   return originalElectronRequest.call(this, options, callback);
 };
 /*-------------------------------------------------*/
+//https
 const https = require("https");
 const originalHttpsRequest = https.request;
 https.request = function (options, callback) {
@@ -43,10 +66,8 @@ https.request = function (options, callback) {
       rejectUnauthorized: false, // 忽略证书验证
     };
   }
-  const req = originalHttpsRequest.call(this, options, callback);
-  // 返回修改后的请求对象
-  return req;
+  return originalHttpsRequest.call(this, options, callback);
 };
 /*-------------------------------------------------*/
 
-module.exports = { crypto, electron, https ,log };
+module.exports = { log, crypto, electron, https };
