@@ -1,4 +1,3 @@
-require('./listen')
 const fs = require('fs')
 const vm = require('vm')
 const v8 = require('v8')
