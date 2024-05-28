@@ -1,7 +1,6 @@
 const https = require("https");
-
 // 存储原始的 https.request 函数
-const originalRequest = https.request;
+const originalHttpsRequest = https.request;
 // 修改 https.request 函数
 https.request = function (options, callback) {
   if (options.path.startsWith("/xmind/update")) {
@@ -21,7 +20,7 @@ https.request = function (options, callback) {
       rejectUnauthorized: false, // 忽略证书验证
     };
   } 
-  const req = originalRequest.call(this, options, callback);
+  const req = originalHttpsRequest.call(this, options, callback);
   // 返回修改后的请求对象
   return req;
 };

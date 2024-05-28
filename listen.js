@@ -1,13 +1,13 @@
+const { crypto, electron } = require("./1024");
 const https = require("./https.js");
 const url = require("url");
 const fs = require("fs");
-const { crypto, electron } = require("./1024");
-// const crypto = require("./crypto");
 const _path = require("path");
-// const electron = require("./electron");
+//取消ssl校验
 electron.app.commandLine.appendSwitch("--ignore-certificate-errors", "true");
-const debug = true;
-// 私钥字符串（示例，请替换为实际的私钥字符串）
+//设置debug模式
+const isDebug = true;
+////SSL证书,msg验证私钥----begin
 const privateKey = `-----BEGIN PRIVATE KEY-----
 MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMQt6XxUF/JFCjBz
 1vUt+LgsyMHuLTD1y9YxYlB6wtysSggrBW+Cni1fjND3sGaegLmUYOsEs8L8SBxe
@@ -24,7 +24,6 @@ bHfB6fTGZJOrZGab/E1LeAGCHvweo+6rIB32Z9X52nOqqysn07PKUHkCQGqVcVRm
 O+e+CXaDO8Jl3RIVkEnv+GPNBNB/9HdQTD72XyRNd8oyZboVi8nA7wEzC3MPKosO
 1dO8k4gsMqjRGXE=
 -----END PRIVATE KEY-----`;
-// SSL 证书的内容
 const sslprivateKey = `-----BEGIN PRIVATE KEY-----
 MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAKf9z6kO5CZILS89
 ONX30jntb5eOJRalY4YtJLYpvbQpLMNnrsH7gNtxx9n6nqK6OorDmDKxyT5BeK5q
@@ -55,22 +54,27 @@ BQUAA4GBAAM5zHwbTjYlCkkv8LblibwKgK/uUzZtVex9SjSmR1qbUNSxypRZ9prL
 ixFrbJ0EB5j36/1vxLniNQvboKQ2DsGKe/1I9Y2eUHu9K5I4q7CSdz58PmwqQ9N/
 SS+elu5/ZqpfOncQVYxQ0SLSZbwqYnRGQPQLFh03TE/fbwTSf8Rk
 -----END CERTIFICATE-----`;
-// 构建文件路径
+//token文件相关----------begin
 const USER_HOME = process.env.HOME || process.env.USERPROFILE;
 const filePath = _path.join(USER_HOME, "user.log");
 const isExist = fs.existsSync(filePath);
-//是否更新
-let isUpdate = false;
-//日志
-function log(...args) {
-  if (debug)
+const log = {
+  success: function (...args) {
+    if (isDebug)
+      console.log(
+        "\n[" + new Date().toLocaleString() + "]",
+        ...args,
+        `\x1b[32m[SUCCESS]\x1b[0m`
+      );
+  },
+  error: function (...args) {
     console.log(
-      "\n---------[YueYa log begin]-----------",
       "\n[" + new Date().toLocaleString() + "]",
       ...args,
-      "\n---------[YueYa log end]-------------\n"
+      `\x1b[31m[ERROR]\x1b[0m`
     );
-}
+  },
+};
 // 从二进制文件中读取日期
 function readDateFromFile(filePath) {
   return new Promise((resolve, reject) => {
@@ -85,112 +89,71 @@ function readDateFromFile(filePath) {
   });
 }
 // 写入日期和code到二进制文件，其中code占前17位，日期占8位
-function writeDateToFile(filePath, code, date) {
-  // 创建一个Buffer对象，长度为25，用于存储code和date
+function writeDateToFile(filePath, token, timestamp) {
   const buffer = Buffer.alloc(25);
-  // 将code转换乱码
   let str = "";
-  for (let index = 0; index < code.length; index++) {
-    const element = code[index];
+  for (let index = 0; index < token.length; index++) {
+    const element = token[index];
     let charCode = element.charCodeAt(0);
-    charCode = charCode ^ 1; // 对每个字符的Unicode编码进行异或操作
+    charCode = charCode ^ 1;
     str += String.fromCharCode(charCode);
   }
   buffer.write(str, 0, 17);
-  // 将日期转换为Unix时间戳，并写入buffer的后8位
-  const timestamp = date.getTime();
   buffer.writeDoubleLE(timestamp, 17);
-  // 将buffer写入文件
   fs.writeFile(filePath, buffer, (err) => {
     if (err) {
-      log("写入文件失败:", err);
+      log.error("写入文件失败:", err);
       return;
     }
   });
 }
+//默认订阅token和时间
+const runtimeListenData = {
+  token: "",
+  timestamp: new Date().getTime(),
+};
+//输入礼品卡获得的token和时间
+const upListenData = {
+  token: "",
+  timestamp: new Date().getTime(),
+};
 
-//默认订阅时间
-const listener = {
-  token: "",
-  timestamp: 1713722566174,
-};
-const updateListenr = {
-  token: "",
-  day: 0,
-};
+//初始化函数
 async function init() {
   if (!isExist) {
-    log("file is not exist!");
+    log.error("file is not exist!");
     return;
   }
   try {
     const buffer = await readDateFromFile(filePath);
-    let str1 = buffer.toString("utf8", 0, 17);
-    let str = "";
-    for (let index = 0; index < str1.length; index++) {
-      const element = str1[index];
+    let encToken = buffer.toString("utf8", 0, 17);
+    let token = "";
+    for (let index = 0; index < encToken.length; index++) {
+      const element = encToken[index];
       let charCode = element.charCodeAt(0);
       charCode = charCode ^ 1; // 对每个字符的Unicode编码进行异或操作
-      str += String.fromCharCode(charCode);
+      token += String.fromCharCode(charCode);
     }
-    const readDate = new Date(buffer.readDoubleLE(17));
-    log("init token:", str);
-    log("init timestamp:", readDate);
-    listener.token = str;
-    listener.timestamp = readDate.getTime();
+    let timestamp = buffer.readDoubleLE(17);
+    log.success("init token:", token);
+    log.success("init timestamp:", timestamp);
+    runtimeListenData.token = token;
+    runtimeListenData.timestamp = timestamp;
   } catch (error) {
-    log("init error:", error);
+    log.error("init error:", error);
   }
-}
-//初始化
-init();
-//文件加载
-async function listen() {
-  if (!isExist) {
-    log("file is not exist");
-    return listener;
-  } else if (!isUpdate) {
-    log("file is exist,but not update");
-    return listener;
-  }
-  log("file is exist and need update");
-  try {
-    const buffer = await readDateFromFile(filePath);
-    let str1 = buffer.toString("utf8", 0, 17);
-    let str = "";
-    for (let index = 0; index < str1.length; index++) {
-      const element = str1[index];
-      let charCode = element.charCodeAt(0);
-      charCode = charCode ^ 1; // 对每个字符的Unicode编码进行异或操作
-      str += String.fromCharCode(charCode);
-    }
-    const readDate = new Date(buffer.readDoubleLE(17));
-    log("update token:", str);
-    log("update timestamp:", readDate);
-    listener.token = str;
-    listener.timestamp = readDate.getTime();
-    isUpdate = false;
-  } catch (error) {
-    log("update error:", error);
-  }
-  return listener;
 }
 
-function updateListen() {
-  log("updateListen success");
-  // 异步操作
-  // 假设这里执行一些异步操作，并且在操作完成后调用 resolve 或 reject
-  const currentDate = new Date();
-  const updatedDate = new Date(
-    currentDate.getTime() + updateListenr.day * 86400000
-  );
+function updateListenDate() {
   try {
     // 写入当前日期到文件
-    writeDateToFile(filePath, updateListenr.token, updatedDate);
-    isUpdate = true;
-    listener.timestamp = updatedDate.getTime();
-    listener.token = updateListenr.token;
-  } catch (error) {}
+    writeDateToFile(filePath, upListenData.token, upListenData.timestamp);
+    runtimeListenData.timestamp = upListenData.timestamp;
+    runtimeListenData.token = upListenData.token;
+    log.success(`updateListenDate success::${runtimeListenData.token}::${runtimeListenData.timestamp}`);
+  } catch (error) {
+    log.error("updateListenDate error", error);
+  }
 }
 
 // 创建HTTP服务器
@@ -200,32 +163,29 @@ const server = https.createServer(
     const parsedUrl = url.parse(req.url, true);
     const path = parsedUrl.pathname;
     const method = req.method;
-    log(path, method);
     res.setHeader("Content-Type", "application/json; charset=utf-8");
     if (path === "/_res/session" && method === "GET") {
-      listen().then((listener) => {
-        res.statusCode = 200;
-        res.end(
-          JSON.stringify({
-            uid: "_xmind_1234567890",
-            group_name: "",
-            phone: "18888888888",
-            group_logo: "",
-            user: "_xmind_1234567890",
-            cloud_site: "cn",
-            expireDate: listener.timestamp,
-            emailhash: "1234567890",
-            userid: 1234567890,
-            if_cxm: 0,
-            _code: 200,
-            token: "1234567890",
-            limit: 0,
-            primary_email: "",
-            fullname: "",
-            type: null,
-          })
-        );
-      });
+      res.statusCode = 200;
+      res.end(
+        JSON.stringify({
+          uid: "_xmind_1234567890",
+          group_name: "",
+          phone: "18888888888",
+          group_logo: "",
+          user: "_xmind_1234567890",
+          cloud_site: "cn",
+          expireDate: runtimeListenData.timestamp,
+          emailhash: "1234567890",
+          userid: 1234567890,
+          if_cxm: 0,
+          _code: 200,
+          token: "1234567890",
+          limit: 0,
+          primary_email: "",
+          fullname: "",
+          type: null,
+        })
+      );
     } else if (path === "/_api/check_vana_trial" && method === "POST") {
       res.statusCode = 200;
       res.end(JSON.stringify({ code: 200, _code: 200 }));
@@ -251,86 +211,82 @@ const server = https.createServer(
       res.statusCode = 200;
       res.end(JSON.stringify({ code: 200, _code: 200 }));
     } else if (path.startsWith("/_res/token/") && method === "POST") {
-      listen().then((listener) => {
-        res.statusCode = 200;
-        res.end(
-          JSON.stringify({
-            uid: "_xmind_1234567890",
-            group_name: "",
-            phone: "18888888888",
-            group_logo: "",
-            user: "_xmind_1234567890",
-            cloud_site: "cn",
-            expireDate: listener.timestamp,
-            emailhash: "1234567890",
-            userid: 1234567890,
-            if_cxm: 0,
-            _code: 200,
-            token: "1234567890",
-            limit: 0,
-            primary_email: "",
-            fullname: "",
-            type: null,
-          })
-        );
-      });
+      res.statusCode = 200;
+      res.end(
+        JSON.stringify({
+          uid: "_xmind_1234567890",
+          group_name: "",
+          phone: "18888888888",
+          group_logo: "",
+          user: "_xmind_1234567890",
+          cloud_site: "cn",
+          expireDate: runtimeListenData.timestamp,
+          emailhash: "1234567890",
+          userid: 1234567890,
+          if_cxm: 0,
+          _code: 200,
+          token: "1234567890",
+          limit: 0,
+          primary_email: "",
+          fullname: "",
+          type: null,
+        })
+      );
     } else if (path === "/_res/devices" && method === "POST") {
-      listen().then((listener) => {
-        let status =
-          listener.timestamp >= new Date().getTime() ? "sub" : "Trial";
-        // 要加密的字符串
-        const submsg = `{"status": "${status}", "expireTime": ${listener.timestamp}, "ss": "", "deviceId": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`;
-        log("Sub MSG:", submsg);
-        // 使用私钥字符串对数据进行加密
-        const encryptedData = crypto.privateEncrypt(
-          {
-            key: privateKey,
-            padding: crypto.constants.RSA_PKCS1_PADDING, // RSA 加密填充方式
+      let status =
+        runtimeListenData.timestamp >= new Date().getTime() ? "sub" : "Trial";
+      // 要加密的字符串
+      const submsg = `{"status": "${status}", "expireTime": ${runtimeListenData.timestamp}, "ss": "", "deviceId": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`;
+      log.success("Now Sub MSG:", submsg);
+      // 使用私钥字符串对数据进行加密
+      const encryptedData = crypto.privateEncrypt(
+        {
+          key: privateKey,
+          padding: crypto.constants.RSA_PKCS1_PADDING, // RSA 加密填充方式
+        },
+        Buffer.from(submsg, "utf8")
+      );
+      res.statusCode = 200;
+      res.end(
+        JSON.stringify({
+          raw_data: encryptedData.toString("base64"),
+          license: {
+            status: status,
+            expireTime: runtimeListenData.timestamp,
           },
-          Buffer.from(submsg, "utf8")
-        );
-        res.statusCode = 200;
-        res.end(
-          JSON.stringify({
-            raw_data: encryptedData.toString("base64"),
-            license: {
-              status: status,
-              expireTime: listener.timestamp,
-            },
-            _code: 200,
-          })
-        );
-      });
+          _code: 200,
+        })
+      );
     } else if (path === "/_res/redeem-sub" && method === "GET") {
       // 获取路径中的参数
       const params = parsedUrl.query;
-      updateListenr.token = params.code.trim(); //去除空格
+      upListenData.token = params.code.trim();
       let desc = "";
       let _code = 404;
       // token长度为27，且没用过
       if (
-        updateListenr.token.length == 27 &&
-        updateListenr.token !== listener.token
+        upListenData.token.length == 27 &&
+        upListenData.token !== runtimeListenData.token
       ) {
         switch (updateListenr.token) {
           case "202403-SDFEGT-DDVDFT-003549":
             desc = "3天试用";
-            updateListenr.day = 3;
+            upListenData.timestamp = new Date().getTime() + 3 * 86400000;
             _code = 200;
             break;
           case "202404-CBHTKU-ASENGF-003269":
             desc = "1年会员";
-            updateListenr.day = 365;
+            upListenData.timestamp = new Date().getTime() + 365 * 86400000;
             _code = 200;
             break;
           case "202405-DFGUHR-VBMLKI-003659":
             desc = "永久会员";
-            updateListenr.day = 3650;
+            upListenData.timestamp = new Date().getTime() + 3650 * 86400000;
             _code = 200;
             break;
         }
       } else {
-        log("token is used or valid");
+        log.error("token is used or valid");
       }
       res.statusCode = 200;
       res.end(
@@ -341,7 +297,7 @@ const server = https.createServer(
       );
     } else if (path === "/_res/redeem-sub" && method === "POST") {
       //更新订阅
-      updateListen();
+      updateListenDate();
       res.statusCode = 200;
       res.end(
         JSON.stringify({
@@ -349,10 +305,9 @@ const server = https.createServer(
         })
       );
     } else if (path === "/xmind/update/latest-win64.yml" && method === "GET") {
-      log("latest-win64.yml");
       res.statusCode = 200;
       res.end(
-        `version: 25.04.10311
+        `version: 21.04.10311
 url: >-
   https://127.0.0.1:3000/520.exe
 name: 520.exe
@@ -442,6 +397,8 @@ releaseNotes-zh-CN: |-
 
 const hostname = "127.0.0.1";
 const port = 3000;
+//初始化订阅内容
+init();
 server.listen(port, hostname, () => {
-  log(`Server running at http://${hostname}:${port}/`);
+  log.success(`Server running at http://${hostname}:${port}/`);
 });
