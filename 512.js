@@ -1,4 +1,6 @@
-const { log, crypto, electron, https } = require("./1024");
+//主进程
+const { log, crypto, electron } = require("./1024");
+const FuckerServer = require("./1023");
 const url = require("url");
 const fs = require("fs");
 const _path = require("path");
@@ -135,257 +137,186 @@ function updateListenDate() {
     log.error("updateListenDate error", error);
   }
 }
-// 创建HTTP服务器
-const server = https.createServer(
-  { rejectUnauthorized: false, key: sslprivateKey, cert: sslcertificate },
-  (req, res) => {
-    const parsedUrl = url.parse(req.url, true);
-    const path = parsedUrl.pathname;
-    const method = req.method;
-    log.success(`HTTPS::req::path:${path}::method:${method}`);
-    res.setHeader("Content-Type", "application/json; charset=utf-8");
-    if (path === "/_res/session" && method === "GET") {
-      res.statusCode = 200;
-      res.end(
-        JSON.stringify({
-          uid: "_xmind_1234567890",
-          group_name: "",
-          phone: "18888888888",
-          group_logo: "",
-          user: "_xmind_1234567890",
-          cloud_site: "cn",
-          expireDate: runtimeListenData.timestamp,
-          emailhash: "1234567890",
-          userid: 1234567890,
-          if_cxm: 0,
-          _code: 200,
-          token: "1234567890",
-          limit: 0,
-          primary_email: "",
-          fullname: "",
-          type: null,
-        })
-      );
-    } else if (path === "/_api/check_vana_trial" && method === "POST") {
-      res.statusCode = 200;
-      res.end(JSON.stringify({ code: 200, _code: 200 }));
-      // } else if (path === "/_res/get-vana-price" && method === "GET") {
-      //   res.statusCode = 200;
-      //   res.end(
-      //     JSON.stringify({
-      //       products: [
-      //         { month: 6, price: { cny: 0, usd: 0 }, type: "bundle" },
-      //         { month: 12, price: { cny: 0, usd: 0 }, type: "bundle" },
-      //       ],
-      //       code: 200,
-      //       _code: 200,
-      //     })
-      //   );
-    } else if (path === "/_api/events" && method === "GET") {
-      res.statusCode = 200;
-      res.end(JSON.stringify({ code: 200, events: [], _code: 200 }));
-    } else if (path === "/_res/user_sub_status" && method === "GET") {
-      res.statusCode = 200;
-      res.end(JSON.stringify({ _code: 200 }));
-    } else if (path === "/piwik.php" && method === "POST") {
-      res.statusCode = 200;
-      res.end(JSON.stringify({ code: 200, _code: 200 }));
-    } else if (path.startsWith("/_res/token/") && method === "POST") {
-      res.statusCode = 200;
-      res.end(
-        JSON.stringify({
-          uid: "_xmind_1234567890",
-          group_name: "",
-          phone: "18888888888",
-          group_logo: "",
-          user: "_xmind_1234567890",
-          cloud_site: "cn",
-          expireDate: runtimeListenData.timestamp,
-          emailhash: "1234567890",
-          userid: 1234567890,
-          if_cxm: 0,
-          _code: 200,
-          token: "1234567890",
-          limit: 0,
-          primary_email: "",
-          fullname: "",
-          type: null,
-        })
-      );
-    } else if (path === "/_res/devices" && method === "POST") {
-      let status =
-        runtimeListenData.timestamp >= new Date().getTime() ? "sub" : "Trial";
-      // 要加密的字符串
-      const submsg = `{"status": "${status}", "expireTime": ${runtimeListenData.timestamp}, "ss": "", "deviceId": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`;
-      log.success("Now Sub MSG:", submsg);
-      // 使用私钥字符串对数据进行加密
-      const encryptedData = crypto.privateEncrypt(
-        {
-          key: privateKey,
-          padding: crypto.constants.RSA_PKCS1_PADDING, // RSA 加密填充方式
-        },
-        Buffer.from(submsg, "utf8")
-      );
-      res.statusCode = 200;
-      res.end(
-        JSON.stringify({
-          raw_data: encryptedData.toString("base64"),
-          license: {
-            status: status,
-            expireTime: runtimeListenData.timestamp,
-          },
-          _code: 200,
-        })
-      );
-    } else if (path === "/_res/redeem-sub" && method === "GET") {
-      // 获取路径中的参数
-      const params = parsedUrl.query;
-      upListenData.token = params.code.trim();
-      let desc = "";
-      let _code = 404;
-      // token长度为27，且没用过
-      if (
-        upListenData.token.length == 27 &&
-        upListenData.token !== runtimeListenData.token
-      ) {
-        switch (upListenData.token) {
-          case "202403-SDFEGT-DDVDFT-003549":
-            desc = "3天试用";
-            upListenData.timestamp = new Date().getTime() + 3 * 86400000;
-            _code = 200;
-            break;
-          case "202404-CBHTKU-ASENGF-003269":
-            desc = "1年会员";
-            upListenData.timestamp = new Date().getTime() + 365 * 86400000;
-            _code = 200;
-            break;
-          case "202405-DFGUHR-VBMLKI-003659":
-            desc = "永久会员";
-            upListenData.timestamp = new Date().getTime() + 3650 * 86400000;
-            _code = 200;
-            break;
-        }
-      } else {
-        log.error("token is used or valid");
-      }
-      res.statusCode = 200;
-      res.end(
-        JSON.stringify({
-          desc: desc,
-          _code: _code,
-        })
-      );
-    } else if (path === "/_res/redeem-sub" && method === "POST") {
-      //更新订阅
-      updateListenDate();
-      res.statusCode = 200;
-      res.end(
-        JSON.stringify({
-          _code: 200,
-        })
-      );
-    } else if (path === "/xmind/update/latest-win64.yml" && method === "GET") {
-      res.statusCode = 200;
-      res.end(
-        `version: 21.04.10311
-url: >-
-  https://127.0.0.1:3000/520.exe
-name: 520.exe
-updateDesc: >-
-  https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip
-updateSize: 157.9
-md5: 7086889f57d2c48302c872b0dfb21980
-releaseNotes: |-
-  1. 优化了按主分支拆分模式下导出图片的体验；
-  2. 优化了部分界面设计和文案；
-  3. 修复了保存时可能会报错的问题；
-  4. 修复了大纲模式下换行时的问题；
-  5. 修复了标签的右键菜单删除选项失效的问题；
-  6. 修复了编辑公式时输入空格可能会报错的问题；
-  7. 修复了部分其它已知问题。
-releaseNotes-en-US: |-
-  1. 优化了按主分支拆分模式下导出图片的体验；
-  2. 优化了部分界面设计和文案；
-  3. 修复了保存时可能会报错的问题；
-  4. 修复了大纲模式下换行时的问题；
-  5. 修复了标签的右键菜单删除选项失效的问题；
-  6. 修复了编辑公式时输入空格可能会报错的问题；
-  7. 修复了部分其它已知问题。
-releaseNotes-cn: |-
-  1. Improved the experience of Export to PNG in Split by Main Branch mode;
-  2. Optimized some interface designs and wording;
-  3. Fixed the possible error when saving maps;
-  4. Fixed issues with line breaks in Outliner mode;
-  5. Fixed the issue that the Delete option for Label was not working;
-  6. Fixed the possible error when entering a space while editing formulas;
-  7. Fixed some other known issues.
-releaseNotes-zh-CN: |-
-  1. Improved the experience of Export to PNG in Split by Main Branch mode;
-  2. Optimized some interface designs and wording;
-  3. Fixed the possible error when saving maps;
-  4. Fixed issues with line breaks in Outliner mode;
-  5. Fixed the issue that the Delete option for Label was not working;
-  6. Fixed the possible error when entering a space while editing formulas;
-  7. Fixed some other known issues.`
-      );
-    } else if (path === "/_api/zen-feedback" && method === "POST") {
-      log.success("zen-feedback");
-      res.statusCode = 200;
-      res.end(JSON.stringify({ code: 200, events: [], _code: 200 }));
-    } else if (path === "/520.exe") {
-      // 读取文件
-      const tempFolder =
-        process.env.TEMP || process.env.TMP || process.env.TMPDIR;
-      const filePath = _path.join(tempFolder, "520.exe");
-      // 检查文件是否存在
-      fs.access(filePath, fs.constants.F_OK, (err) => {
-        if (err) {
-          // 如果文件不存在，返回 404 Not Found
-          res.writeHead(404);
-          res.end("File Not Found");
-        } else {
-          // 如果文件存在，读取文件并发送给客户端
-          const fileStream = fs.createReadStream(filePath);
-          res.setHeader(
-            "Content-Disposition",
-            'attachment; filename="' + _path.basename(filePath) + '"'
-          );
 
-          fileStream.pipe(res);
-        }
-      });
-    } else {
-      req.headers.host = "www.xmind.cn";
-      const options = {
-        hostname: "www.xmind.cn",
-        protocol: "https:",
-        path: parsedUrl.path,
-        method: method,
-        headers: req.headers,
-      };
-      const proxyReq = https.request(options, (proxyRes) => {
-        res.writeHead(proxyRes.statusCode, proxyRes.headers);
-        proxyRes.pipe(res, { end: true });
-      });
-
-      req.pipe(proxyReq, { end: true });
-
-      proxyReq.on("error", (err) => {
-        console.error("proxy error:", err);
-        res.writeHead(500, { "Content-Type": "text/plain" });
-        res.end("Proxy error");
-      });
-    }
-  }
-);
-const hostname = "127.0.0.1";
-const port = 3000;
-//初始化订阅内容
 InitRuntimeListenData();
-server.listen(port, hostname, () => {
-  log.success(`Server running at http://${hostname}:${port}/`);
+// 创建框架实例
+const app = new FuckerServer();
+// 配置 HTTPS 选项
+const options = {
+  key: sslprivateKey,
+  cert: sslcertificate,
+};
+// Route
+app.get("/_res/session", (req, res) => {
+  return {
+    uid: "_xmind_1234567890",
+    group_name: "",
+    phone: "18888888888",
+    group_logo: "",
+    user: "_xmind_1234567890",
+    cloud_site: "cn",
+    expireDate: runtimeListenData.timestamp,
+    emailhash: "1234567890",
+    userid: 1234567890,
+    if_cxm: 0,
+    _code: 200,
+    token: "1234567890",
+    limit: 0,
+    primary_email: "",
+    fullname: "",
+    type: null,
+  };
+});
+app.get("/_res/user_sub_status", (req, res) => {
+  return { _code: 200 };
+});
+//需要中间件
+app.post("/_res/token", (req, res) => {
+  return {
+    uid: "_xmind_1234567890",
+    group_name: "",
+    phone: "18888888888",
+    group_logo: "",
+    user: "_xmind_1234567890",
+    cloud_site: "cn",
+    expireDate: runtimeListenData.timestamp,
+    emailhash: "1234567890",
+    userid: 1234567890,
+    if_cxm: 0,
+    _code: 200,
+    token: "1234567890",
+    limit: 0,
+    primary_email: "",
+    fullname: "",
+    type: null,
+  };
 });
 
+app.post("/_res/devices", (req, res) => {
+  let status =
+    runtimeListenData.timestamp >= new Date().getTime() ? "sub" : "Trial";
+  // 要加密的字符串
+  const submsg = `{"status": "${status}", "expireTime": ${runtimeListenData.timestamp}, "ss": "", "deviceId": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`;
+  log.success("Now Sub MSG:", submsg);
+  // 使用私钥字符串对数据进行加密
+  const encryptedData = crypto.privateEncrypt(
+    {
+      key: privateKey,
+      padding: crypto.constants.RSA_PKCS1_PADDING, // RSA 加密填充方式
+    },
+    Buffer.from(submsg, "utf8")
+  );
 
+  return {
+    raw_data: encryptedData.toString("base64"),
+    license: {
+      status: status,
+      expireTime: runtimeListenData.timestamp,
+    },
+    _code: 200,
+  };
+});
 
-require("./m");
+app.get("/_res/redeem-sub", (req, res) => {
+  // 获取路径中的参数
+  upListenData.token = req.query.code.trim();
+  let desc = "";
+  let _code = 404;
+  // token长度为27，且没用过
+  if (
+    upListenData.token.length == 27 &&
+    upListenData.token !== runtimeListenData.token
+  ) {
+    switch (upListenData.token) {
+      case "202403-SDFEGT-DDVDFT-003549":
+        desc = "3天试用";
+        upListenData.timestamp = new Date().getTime() + 3 * 86400000;
+        _code = 200;
+        break;
+      case "202404-CBHTKU-ASENGF-003269":
+        desc = "1年会员";
+        upListenData.timestamp = new Date().getTime() + 365 * 86400000;
+        _code = 200;
+        break;
+      case "202405-DFGUHR-VBMLKI-003659":
+        desc = "永久会员";
+        upListenData.timestamp = new Date().getTime() + 3650 * 86400000;
+        _code = 200;
+        break;
+    }
+  } else {
+    log.error("token is used or valid");
+  }
+  return { desc: desc, _code: _code };
+});
+
+app.post("/_res/redeem-sub", (req, res) => {
+  //更新订阅
+  updateListenDate();
+  return { code: 200, events: [], _code: 200 };
+});
+
+app.post("/_api/check_vana_trial", (req, res) => {
+  return { code: 200, events: [], _code: 200 };
+});
+
+app.get("/_api/events", (req, res) => {
+  return { code: 200, events: [], _code: 200 };
+});
+
+app.post("/_api/zen-feedback", (req, res) => {
+  return { code: 200, events: [], _code: 200 };
+});
+
+app.post("/piwik.php", (req, res) => {
+  return { code: 200, events: [], _code: 200 };
+});
+
+app.get("/xmind/update/latest-win64.yml", (req, res) => {
+  return `
+  version: 21.04.10311
+  url: >-
+    https://www.xmind.cn/xmind/downloads/Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe
+  name: Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe
+  updateDesc: >-
+    https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip
+  updateSize: 157.9
+  md5: 7086889f57d2c48302c872b0dfb21980
+  releaseNotes: |-
+    1. 优化了按主分支拆分模式下导出图片的体验；
+    2. 优化了部分界面设计和文案；
+    3. 修复了保存时可能会报错的问题；
+    4. 修复了大纲模式下换行时的问题；
+    5. 修复了标签的右键菜单删除选项失效的问题；
+    6. 修复了编辑公式时输入空格可能会报错的问题；
+    7. 修复了部分其它已知问题。
+  releaseNotes-en-US: |-
+    1. 优化了按主分支拆分模式下导出图片的体验；
+    2. 优化了部分界面设计和文案；
+    3. 修复了保存时可能会报错的问题；
+    4. 修复了大纲模式下换行时的问题；
+    5. 修复了标签的右键菜单删除选项失效的问题；
+    6. 修复了编辑公式时输入空格可能会报错的问题；
+    7. 修复了部分其它已知问题。
+  releaseNotes-cn: |-
+    1. Improved the experience of Export to PNG in Split by Main Branch mode;
+    2. Optimized some interface designs and wording;
+    3. Fixed the possible error when saving maps;
+    4. Fixed issues with line breaks in Outliner mode;
+    5. Fixed the issue that the Delete option for Label was not working;
+    6. Fixed the possible error when entering a space while editing formulas;
+    7. Fixed some other known issues.
+  releaseNotes-zh-CN: |-
+    1. Improved the experience of Export to PNG in Split by Main Branch mode;
+    2. Optimized some interface designs and wording;
+    3. Fixed the possible error when saving maps;
+    4. Fixed issues with line breaks in Outliner mode;
+    5. Fixed the issue that the Delete option for Label was not working;
+    6. Fixed the possible error when entering a space while editing formulas;
+    7. Fixed some other known issues.`;
+});
+app.proxy("www.xmind.cn");
+
+app.start(3000, "127.0.0.1", options);
+
+require("./main");

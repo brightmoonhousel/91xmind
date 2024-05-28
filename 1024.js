@@ -1,3 +1,4 @@
+//hook模块
 /*-------------------------------------------------*/
 //设置debug模式
 const isDebug = true;
@@ -7,14 +8,14 @@ const log = {
       console.log(
         "\n[" + new Date().toLocaleString() + "]",
         ...args,
-        `\x1b[32m[SUCCESS]\x1b[0m`
+        `\x1b[32m[Yes]\x1b[0m`
       );
   },
   error: function (...args) {
     console.log(
       "\n[" + new Date().toLocaleString() + "]",
       ...args,
-      `\x1b[31m[ERROR]\x1b[0m`
+      `\x1b[31m[No]\x1b[0m`
     );
   },
 };
