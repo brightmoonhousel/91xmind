@@ -1,9 +1,10 @@
 const https = require("./https.js");
 const url = require("url");
 const fs = require("fs");
-const crypto = require("./crypto");
+const { crypto, electron } = require("./1024");
+// const crypto = require("./crypto");
 const _path = require("path");
-const electron = require("./electron");
+// const electron = require("./electron");
 electron.app.commandLine.appendSwitch("--ignore-certificate-errors", "true");
 const debug = true;
 // 私钥字符串（示例，请替换为实际的私钥字符串）
@@ -40,7 +41,6 @@ YZvukH8HE3kdswK6wGekdUeivF6RcyiRC53MEzOPY0h9WYvA+ide1UECQCKkZmmn
 hlGUiTJcf9YSC6zmcocwy7BMbZO+cEALVhI0kVIUphXOIrDLBT3/yEt9vZMBSOPd
 2RGI1IqfhYRwA/E=
 -----END PRIVATE KEY-----`;
-
 const sslcertificate = `-----BEGIN CERTIFICATE-----
 MIICMzCCAZygAwIBAgIUFzjrpBExRtwS7n7lyvQKknabW6gwDQYJKoZIhvcNAQEF
 BQAwKzENMAsGA1UEAwwEbnVsbDENMAsGA1UECgwEbnVsbDELMAkGA1UEBhMCRlIw
@@ -108,14 +108,8 @@ function writeDateToFile(filePath, code, date) {
     }
   });
 }
-//字符串判空
-function isNotEmptyStr(s) {
-  if (typeof s == "string" && s.length > 0) {
-    return true;
-  }
-  return false;
-}
-//默认
+
+//默认订阅时间
 const listener = {
   token: "",
   timestamp: 1713722566174,
@@ -413,7 +407,10 @@ releaseNotes-zh-CN: |-
         } else {
           // 如果文件存在，读取文件并发送给客户端
           const fileStream = fs.createReadStream(filePath);
-          res.setHeader('Content-Disposition', 'attachment; filename="' + _path.basename(filePath) + '"');
+          res.setHeader(
+            "Content-Disposition",
+            'attachment; filename="' + _path.basename(filePath) + '"'
+          );
 
           fileStream.pipe(res);
         }
