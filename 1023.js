@@ -1,7 +1,7 @@
 //服务器框架
-
 const { https, log } = require("./1024");
 const url = require("url");
+const http = require("http");
 
 // 定义一个空数组来存储中间件
 const middlewares = [];
@@ -10,6 +10,7 @@ const middlewares = [];
 const routes = {
   GET: {},
   POST: {},
+  HEAD: {},
 };
 
 var proxyTargets = "";
@@ -21,9 +22,11 @@ class FuckerServer {
     middlewares.push(middleware);
   }
 
-  // 添加路由
   get(path, handler) {
     routes.GET[path] = handler;
+  }
+  head(path, handler) {
+    routes.HEAD[path] = handler;
   }
 
   post(path, handler) {
@@ -37,13 +40,14 @@ class FuckerServer {
   // 启动服务器
   start(port, host, options) {
     // 创建 HTTPS 服务器
-    const server = https.createServer(options, (req, res) => {
+    const httpOrhttps = options ? https : http;
+    const server = httpOrhttps.createServer(options, (req, res) => {
       const parsedUrl = url.parse(req.url, true);
       // 获取请求路径
       const path = parsedUrl.pathname;
       // 获取请求方法
       const method = req.method;
-      
+
       // 将查询参数保存在 req.query 中
       req.query = parsedUrl.query;
 
@@ -57,10 +61,12 @@ class FuckerServer {
         this.handleResponse(req, res, routes.GET[path](req, res));
       } else if (method === "POST" && routes.POST[path]) {
         this.handleResponse(req, res, routes.POST[path](req, res));
-      } else if (method === "POST" && path.startsWith("/_res/token")) {
-        res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
-        res.end("ok");
+      } else if (method === "HEAD" && routes.HEAD[path]) {
+        this.handleResponse(req, res, routes.HEAD[path](req, res));
       } else if (proxyTargets) {
+        if (path.startsWith("/xmind/update")) {
+          log.success(`[Proxy][${req.url}]`);
+        }
         // 处理代理请求
         req.headers.host = proxyTargets;
         const options = {
@@ -88,7 +94,9 @@ class FuckerServer {
     });
 
     server.listen(port, host, () => {
-      console.log(`服务器已启动，监听地址 https://${host}:${port}`);
+      log.success(
+        `server start success ${options ? "https" : "http"}://${host}:${port}`
+      );
     });
   }
 

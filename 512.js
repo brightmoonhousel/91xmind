@@ -1,5 +1,5 @@
 //主进程
-const { log, crypto, electron } = require("./1024");
+const { log, crypto, electron, Host } = require("./1024");
 const FuckerServer = require("./1023");
 const url = require("url");
 const fs = require("fs");
@@ -139,6 +139,7 @@ function updateListenDate() {
 }
 
 InitRuntimeListenData();
+
 // 创建框架实例
 const app = new FuckerServer();
 // 配置 HTTPS 选项
@@ -274,69 +275,47 @@ app.post("/piwik.php", (req, res) => {
 
 app.get("/xmind/update/latest-win64.yml", (req, res) => {
   return `
-  version: 25.04.10311
+  version: 0.0.0
   url: >-
     https://www.xmind.cn/xmind/downloads/Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe
   name: Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe
   updateDesc: >-
-    https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip
-  updateSize: 157.9
-  md5: 7086889f57d2c48302c872b0dfb21980
-  releaseNotes: |-
-    1. 优化了按主分支拆分模式下导出图片的体验；
-    2. 优化了部分界面设计和文案；
-    3. 修复了保存时可能会报错的问题；
-    4. 修复了大纲模式下换行时的问题；
-    5. 修复了标签的右键菜单删除选项失效的问题；
-    6. 修复了编辑公式时输入空格可能会报错的问题；
-    7. 修复了部分其它已知问题。
-  releaseNotes-en-US: |-
-    1. 优化了按主分支拆分模式下导出图片的体验；
-    2. 优化了部分界面设计和文案；
-    3. 修复了保存时可能会报错的问题；
-    4. 修复了大纲模式下换行时的问题；
-    5. 修复了标签的右键菜单删除选项失效的问题；
-    6. 修复了编辑公式时输入空格可能会报错的问题；
-    7. 修复了部分其它已知问题。
-  releaseNotes-cn: |-
-    1. Improved the experience of Export to PNG in Split by Main Branch mode;
-    2. Optimized some interface designs and wording;
-    3. Fixed the possible error when saving maps;
-    4. Fixed issues with line breaks in Outliner mode;
-    5. Fixed the issue that the Delete option for Label was not working;
-    6. Fixed the possible error when entering a space while editing formulas;
-    7. Fixed some other known issues.
-  releaseNotes-zh-CN: |-
-    1. Improved the experience of Export to PNG in Split by Main Branch mode;
-    2. Optimized some interface designs and wording;
-    3. Fixed the possible error when saving maps;
-    4. Fixed issues with line breaks in Outliner mode;
-    5. Fixed the issue that the Delete option for Label was not working;
-    6. Fixed the possible error when entering a space while editing formulas;
-    7. Fixed some other known issues.`;
+    https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip`;
 });
-app.get(
-  "/xmind/downloads/Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe",
-  (req, res) => {
-    const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe`;
-  
-  fs.readFile(filePath, function(err, data) {
+app.head("/latest-win64.exe", (req, res) => {
+  const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\app-64.7z`;
+  fs.stat(filePath, (err, stats) => {
     if (err) {
-      res.writeHead(500, {'Content-Type': 'text/plain'});
-      res.end('Internal Server Error');
+      res.writeHead(404, { "Content-Type": "text/plain" });
+      res.end("File not found");
       return;
     }
-    
     res.writeHead(200, {
-      'Content-Type': 'application/octet-stream',
-      'Content-Disposition': 'attachment; filename="file.exe"'
+      "Content-Type": "application/octet-stream",
+      "Content-Length": stats.size,
+    });
+    res.end();
+  });
+});
+app.get("/latest-win64.exe", (req, res) => {
+  const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\app-64.7z`;
+  log.success("filePath: " + filePath);
+  fs.readFile(filePath, function (err, data) {
+    if (err) {
+      res.writeHead(500, { "Content-Type": "text/plain" });
+      res.end("Internal Server Error");
+      return;
+    }
+    res.writeHead(200, {
+      "Content-Type": "application/octet-stream",
+      "Content-Length": `${data.length}`,
     });
     res.end(data);
   });
-  }
-);
+});
 app.proxy("www.xmind.cn");
-
-app.start(3000, "127.0.0.1", options);
+app.start(Host.httpsPort, Host.name, options);
+app.start(Host.httpPort, Host.name);
 
 require("./main");
+ 

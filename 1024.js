@@ -1,4 +1,9 @@
 //hook模块
+const Host = {
+  name: "127.0.0.1",
+  httpsPort: 3000,
+  httpPort: 3001
+};
 /*-------------------------------------------------*/
 //设置debug模式
 const isDebug = true;
@@ -8,14 +13,14 @@ const log = {
       console.log(
         "\n[" + new Date().toLocaleString() + "]",
         ...args,
-        `\x1b[32m[Yes]\x1b[0m`
+        `\x1b[32m[Yes]\x1b[0m\n`
       );
   },
   error: function (...args) {
     console.log(
       "\n[" + new Date().toLocaleString() + "]",
       ...args,
-      `\x1b[31m[No]\x1b[0m`
+      `\x1b[31m[No]\x1b[0m\n`
     );
   },
 };
@@ -35,7 +40,7 @@ crypto.publicDecrypt = function (options, buffer) {
 //electron
 const electron = require("electron");
 const originalElectronRequest = electron.net.request;
-const fakeUrl = "https://127.0.0.1:3000";
+const fakeUrl = `https://${Host.name}:${Host.httpsPort}`;
 electron.net.request = function (options, callback) {
   let url = options.url;
   if (url.startsWith("https://www.xmind.cn")) {
@@ -50,12 +55,12 @@ electron.net.request = function (options, callback) {
 const https = require("https");
 const originalHttpsRequest = https.request;
 https.request = function (options, callback) {
-  if (options.path.startsWith("/xmind/update")) {
+  if (options.pathname=="/xmind/update/latest-win64.yml") {
     options = {
       protocol: "https:",
-      host: "127.0.0.1",
-      port: 3000,
-      hostname: "127.0.0.1",
+      host: Host.name,
+      port: Host.httpsPort,
+      hostname: Host.name,
       path: "/xmind/update/latest-win64.yml",
       method: "GET",
       headers: {
@@ -71,4 +76,4 @@ https.request = function (options, callback) {
 };
 /*-------------------------------------------------*/
 
-module.exports = { log, crypto, electron, https };
+module.exports = { log, crypto, electron, https, Host };
