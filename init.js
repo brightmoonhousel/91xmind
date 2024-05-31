@@ -1,5 +1,5 @@
 //主进程
-const { log, crypto, Host, FuckerServer } = require("./1024");
+const { log, crypto, Host, FuckerServer } = require("./hook");
 const fs = require("fs");
 const _path = require("path");
 //SSL证书,msg验证私钥
