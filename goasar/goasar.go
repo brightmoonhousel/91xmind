@@ -233,6 +233,7 @@ func (asar *Asar) CreateFileSys() (*SimpleFileSystem, error) {
 						Path:     fullPath,
 						IsDir:    false,
 					}
+
 					of, _ := strconv.Atoi(f.Offset)
 					si := (int)(f.Size)
 					subData := (*asar.DataBuffer)[of : of+si]

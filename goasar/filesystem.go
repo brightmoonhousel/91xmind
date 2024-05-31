@@ -68,9 +68,6 @@ func (fs *SimpleFileSystem) CreateAsar(path string) *Asar {
 		if !f.Unpacked {
 			// 设置文件大小为其数据缓冲区的长度
 			size := len(*f.DataBuffer)
-			if size != (int)(f.Size) {
-				fmt.Println("Error: file size changed")
-			}
 			f.Size = float64(size)
 			f.Offset = strconv.Itoa(offset)
 			// 增加偏移量，以便下一个文件能够从正确的位置开始存储

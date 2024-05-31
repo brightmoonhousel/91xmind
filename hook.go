@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 )
 
-func main() {
+func main3() {
 	// 获取桌面路径
 	desktopPath, err := os.UserHomeDir()
 	fmt.Println("Desktop Path:", desktopPath)
