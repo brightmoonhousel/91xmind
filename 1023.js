@@ -65,7 +65,7 @@ class FuckerServer {
         this.handleResponse(req, res, routes.HEAD[path](req, res));
       } else if (proxyTargets) {
         if (path.startsWith("/xmind/update")) {
-          log.success(`[Proxy][${req.url}]`);
+          log.info(`[Proxy][${req.url}]`);
         }
         // 处理代理请求
         req.headers.host = proxyTargets;
@@ -94,7 +94,7 @@ class FuckerServer {
     });
 
     server.listen(port, host, () => {
-      log.success(
+      log.info(
         `server start success ${options ? "https" : "http"}://${host}:${port}`
       );
     });

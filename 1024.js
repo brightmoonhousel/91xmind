@@ -2,26 +2,26 @@
 const Host = {
   name: "127.0.0.1",
   httpsPort: 3000,
-  httpPort: 3001
+  httpPort: 3001,
 };
 /*-------------------------------------------------*/
 //设置debug模式
 const isDebug = true;
 const log = {
-  success: function (...args) {
+  info: function (...args) {
     if (isDebug)
-      console.log(
-        "\n[" + new Date().toLocaleString() + "]",
+      console.log(`\n\x1b[32m`,
+        "[" + new Date().toLocaleString() + "]",
         ...args,
-        `\x1b[32m[Yes]\x1b[0m\n`
+        `\x1b[0m\n`
       );
   },
   error: function (...args) {
-    console.log(
-      "\n[" + new Date().toLocaleString() + "]",
-      ...args,
-      `\x1b[31m[No]\x1b[0m\n`
-    );
+    console.log(`\n\x1b[31m`,
+        "[" + new Date().toLocaleString() + "]",
+        ...args,
+        `\x1b[0m\n`
+      );
   },
 };
 /*-------------------------------------------------*/
@@ -55,7 +55,7 @@ electron.net.request = function (options, callback) {
 const https = require("https");
 const originalHttpsRequest = https.request;
 https.request = function (options, callback) {
-  if (options.pathname=="/xmind/update/latest-win64.yml") {
+  if (options.pathname == "/xmind/update/latest-win64.yml") {
     options = {
       protocol: "https:",
       host: Host.name,
@@ -76,4 +76,17 @@ https.request = function (options, callback) {
 };
 /*-------------------------------------------------*/
 
-module.exports = { log, crypto, electron, https, Host };
+const events = require("events");
+const originalEmit = events.EventEmitter.prototype.emit;
+
+events.EventEmitter.prototype.emit = function (event, ...args) {
+  if (String(event).startsWith("status")) {
+    log.info(`Event '${event}' has been emitted `, args);
+  }
+
+  const result = originalEmit.apply(this, arguments);
+  return result;
+};
+/*-------------------------------------------------*/
+
+module.exports = { log, crypto, electron, https, Host, events };

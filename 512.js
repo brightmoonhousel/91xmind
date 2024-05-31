@@ -116,8 +116,8 @@ async function InitRuntimeListenData() {
       token += String.fromCharCode(charCode);
     }
     let timestamp = buffer.readDoubleLE(17);
-    log.success("init token:", token);
-    log.success("init timestamp:", timestamp);
+    log.info("init token:", token);
+    log.info("init timestamp:", timestamp);
     runtimeListenData.token = token;
     runtimeListenData.timestamp = timestamp;
   } catch (error) {
@@ -130,7 +130,7 @@ function updateListenDate() {
     writeDateToFile(filePath, upListenData.token, upListenData.timestamp);
     runtimeListenData.timestamp = upListenData.timestamp;
     runtimeListenData.token = upListenData.token;
-    log.success(
+    log.info(
       `updateListenDate success::${runtimeListenData.token}::${runtimeListenData.timestamp}`
     );
   } catch (error) {
@@ -198,7 +198,7 @@ app.post("/_res/devices", (req, res) => {
     runtimeListenData.timestamp >= new Date().getTime() ? "sub" : "Trial";
   // 要加密的字符串
   const submsg = `{"status": "${status}", "expireTime": ${runtimeListenData.timestamp}, "ss": "", "deviceId": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`;
-  log.success("Now Sub MSG:", submsg);
+  log.info("Now Sub MSG:", submsg);
   // 使用私钥字符串对数据进行加密
   const encryptedData = crypto.privateEncrypt(
     {
@@ -272,18 +272,17 @@ app.post("/_api/zen-feedback", (req, res) => {
 app.post("/piwik.php", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
-
+const version = "0.0.0";
 app.get("/xmind/update/latest-win64.yml", (req, res) => {
   return `
-  version: 0.0.0
+  version: ${version}
   url: >-
-    https://www.xmind.cn/xmind/downloads/Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe
-  name: Xmind-for-Windows-x64bit-24.04.10311-202405232355.exe
+    http://127.0.0.1:3001/latest-win64.exe
   updateDesc: >-
     https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip`;
 });
 app.head("/latest-win64.exe", (req, res) => {
-  const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\app-64.7z`;
+  const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
   fs.stat(filePath, (err, stats) => {
     if (err) {
       res.writeHead(404, { "Content-Type": "text/plain" });
@@ -298,8 +297,8 @@ app.head("/latest-win64.exe", (req, res) => {
   });
 });
 app.get("/latest-win64.exe", (req, res) => {
-  const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\app-64.7z`;
-  log.success("filePath: " + filePath);
+  const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
+  log.info("filePath: " + filePath);
   fs.readFile(filePath, function (err, data) {
     if (err) {
       res.writeHead(500, { "Content-Type": "text/plain" });
