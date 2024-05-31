@@ -281,7 +281,7 @@ app.get("/xmind/update/latest-win64.yml", (req, res) => {
   updateDesc: >-
     https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip`;
 });
-app.head("/latest-win64.exe", (req, res) => {
+/* app.head("/latest-win64.exe", (req, res) => {
   const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
   fs.stat(filePath, (err, stats) => {
     if (err) {
@@ -295,8 +295,8 @@ app.head("/latest-win64.exe", (req, res) => {
     });
     res.end();
   });
-});
-app.get("/latest-win64.exe", (req, res) => {
+}); */
+/* app.get("/latest-win64.exe", (req, res) => {
   const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
   log.info("filePath: " + filePath);
   fs.readFile(filePath, function (err, data) {
@@ -311,10 +311,10 @@ app.get("/latest-win64.exe", (req, res) => {
     });
     res.end(data);
   });
-});
+}); */
 app.proxy("www.xmind.cn");
 app.start(Host.httpsPort, Host.name, options);
-app.start(Host.httpPort, Host.name);
+// app.start(Host.httpPort, Host.name);
 
 require("./main");
  

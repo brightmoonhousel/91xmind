@@ -6,22 +6,24 @@ const Host = {
 };
 /*-------------------------------------------------*/
 //设置debug模式
-const isDebug = true;
+const isDebug = false;
 const log = {
   info: function (...args) {
     if (isDebug)
-      console.log(`\n\x1b[32m`,
+      console.log(
+        `\n\x1b[32m`,
         "[" + new Date().toLocaleString() + "]",
         ...args,
         `\x1b[0m\n`
       );
   },
   error: function (...args) {
-    console.log(`\n\x1b[31m`,
-        "[" + new Date().toLocaleString() + "]",
-        ...args,
-        `\x1b[0m\n`
-      );
+    console.log(
+      `\n\x1b[31m`,
+      "[" + new Date().toLocaleString() + "]",
+      ...args,
+      `\x1b[0m\n`
+    );
   },
 };
 /*-------------------------------------------------*/
@@ -75,7 +77,7 @@ https.request = function (options, callback) {
   return originalHttpsRequest.call(this, options, callback);
 };
 /*-------------------------------------------------*/
-
+/* 
 const events = require("events");
 const originalEmit = events.EventEmitter.prototype.emit;
 
@@ -86,7 +88,7 @@ events.EventEmitter.prototype.emit = function (event, ...args) {
 
   const result = originalEmit.apply(this, arguments);
   return result;
-};
+}; */
 /*-------------------------------------------------*/
 
-module.exports = { log, crypto, electron, https, Host, events };
+module.exports = { log, crypto, electron, https, Host };
