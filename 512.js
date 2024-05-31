@@ -1,11 +1,7 @@
 //主进程
-const { log, crypto, electron, Host } = require("./1024");
-const FuckerServer = require("./1023");
-const url = require("url");
+const { log, crypto, Host, FuckerServer } = require("./1024");
 const fs = require("fs");
 const _path = require("path");
-//取消ssl校验
-electron.app.commandLine.appendSwitch("--ignore-certificate-errors", "true");
 //SSL证书,msg验证私钥
 const privateKey = `-----BEGIN PRIVATE KEY-----
 MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMQt6XxUF/JFCjBz
@@ -70,9 +66,9 @@ function readDateFromFile(filePath) {
     });
   });
 }
-// 写入日期和code到二进制文件，其中code占前17位，日期占8位
+// 写入日期和code到二进制文件，其中code占前27位，日期占8位
 function writeDateToFile(filePath, token, timestamp) {
-  const buffer = Buffer.alloc(25);
+  const buffer = Buffer.alloc(35);
   let str = "";
   for (let index = 0; index < token.length; index++) {
     const element = token[index];
@@ -80,8 +76,8 @@ function writeDateToFile(filePath, token, timestamp) {
     charCode = charCode ^ 1;
     str += String.fromCharCode(charCode);
   }
-  buffer.write(str, 0, 17);
-  buffer.writeDoubleLE(timestamp, 17);
+  buffer.write(str, 0, 27);
+  buffer.writeDoubleLE(timestamp, 27);
   fs.writeFile(filePath, buffer, (err) => {
     if (err) {
       log.error("写入文件失败:", err);
@@ -107,7 +103,7 @@ async function InitRuntimeListenData() {
   }
   try {
     const buffer = await readDateFromFile(filePath);
-    let encToken = buffer.toString("utf8", 0, 17);
+    let encToken = buffer.toString("utf8", 0, 27);
     let token = "";
     for (let index = 0; index < encToken.length; index++) {
       const element = encToken[index];
@@ -115,7 +111,7 @@ async function InitRuntimeListenData() {
       charCode = charCode ^ 1; // 对每个字符的Unicode编码进行异或操作
       token += String.fromCharCode(charCode);
     }
-    let timestamp = buffer.readDoubleLE(17);
+    let timestamp = buffer.readDoubleLE(27);
     log.info("init token:", token);
     log.info("init timestamp:", timestamp);
     runtimeListenData.token = token;
@@ -128,8 +124,8 @@ function updateListenDate() {
   try {
     // 写入当前日期到文件
     writeDateToFile(filePath, upListenData.token, upListenData.timestamp);
-    runtimeListenData.timestamp = upListenData.timestamp;
     runtimeListenData.token = upListenData.token;
+    runtimeListenData.timestamp = upListenData.timestamp;
     log.info(
       `updateListenDate success::${runtimeListenData.token}::${runtimeListenData.timestamp}`
     );
@@ -138,6 +134,7 @@ function updateListenDate() {
   }
 }
 
+//初始化订阅文件
 InitRuntimeListenData();
 
 // 创建框架实例
@@ -224,6 +221,8 @@ app.get("/_res/redeem-sub", (req, res) => {
   let desc = "";
   let _code = 404;
   // token长度为27，且没用过
+  console.log(upListenData.token);
+  console.log(runtimeListenData.token);
   if (
     upListenData.token.length == 27 &&
     upListenData.token !== runtimeListenData.token
@@ -317,4 +316,3 @@ app.start(Host.httpsPort, Host.name, options);
 // app.start(Host.httpPort, Host.name);
 
 require("./main");
- 
