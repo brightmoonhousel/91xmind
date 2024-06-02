@@ -6,7 +6,7 @@ const electron = require("electron");
 const https = require("https");
 const console = require("console");
 //设置debug模式
-const isDebug = false;
+const isDebug = true;
 /*-------------------------------------------------*/
 originalLog = console.log;
 console.log = function (...args) {
