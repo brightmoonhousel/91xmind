@@ -168,27 +168,6 @@ app.get("/_res/session", (req, res) => {
 app.get("/_res/user_sub_status", (req, res) => {
   return { _code: 200 };
 });
-//需要中间件
-app.post("/_res/token", (req, res) => {
-  return {
-    uid: "_xmind_1234567890",
-    group_name: "",
-    phone: "18888888888",
-    group_logo: "",
-    user: "_xmind_1234567890",
-    cloud_site: "cn",
-    expireDate: runtimeListenData.timestamp,
-    emailhash: "1234567890",
-    userid: 1234567890,
-    if_cxm: 0,
-    _code: 200,
-    token: "1234567890",
-    limit: 0,
-    primary_email: "",
-    fullname: "",
-    type: null,
-  };
-});
 
 app.post("/_res/devices", (req, res) => {
   let status =
