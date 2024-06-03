@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"strconv"
 )
 
 var (
@@ -200,69 +199,3 @@ func (asar *Asar) Save() error {
 //		}
 //		return nil
 //	}
-
-func (asar *Asar) CreateFileSys() (*SimpleFileSystem, error) {
-	aFileSystem := NewSimpleFileSystem()
-	type fileStackItem struct {
-		fullPath string
-		fileList map[string]interface{}
-	}
-	strMap := asar.JsonHeaderStrMap["files"].(map[string]interface{})
-	stack := []fileStackItem{{"", strMap}} // 初始化栈
-	for len(stack) > 0 {
-		// 弹出栈顶元素
-		current := stack[len(stack)-1] // 获取栈顶元素
-		stack = stack[:len(stack)-1]   // 弹出
-		// 遍历当前目录中的文件和子目录
-		for name, info := range current.fileList {
-			// 将文件名与前缀拼接成完整路径
-			fullPath := filepath.Join(current.fullPath, name)
-			if subFiles, ok := info.(map[string]interface{}); ok && subFiles["files"] != nil {
-				//包含"files"键，则认为是目录,将目录压栈
-				stack = append(stack, fileStackItem{fullPath, subFiles["files"].(map[string]interface{})})
-			} else if file, ok := info.(map[string]interface{}); ok {
-				// 是文件
-				size, sizeOk := file["size"].(float64)
-				unpacked, unpackedOk := file["unpacked"].(bool)
-				offset, offsetOk := file["offset"].(string)
-				if sizeOk && offsetOk && !unpacked {
-					f := Afile{
-						Offset:   offset,
-						Size:     size,
-						Unpacked: false,
-						Path:     fullPath,
-						IsDir:    false,
-					}
-
-					of, _ := strconv.Atoi(f.Offset)
-					si := (int)(f.Size)
-					subData := (*asar.DataBuffer)[of : of+si]
-					copiedData := make([]byte, len(subData))
-					copy(copiedData, subData)
-					f.DataBuffer = &copiedData
-					aFileSystem.CreateFile(&f)
-				} else if unpackedOk && unpacked {
-					f := Afile{
-						Offset:   "0",
-						Size:     size,
-						Unpacked: true,
-						Path:     fullPath,
-						IsDir:    false,
-					}
-					aFileSystem.CreateFile(&f)
-				} else {
-					//[鹿鱼][2024/5/28]TODO:空文件夹
-				}
-			}
-
-		}
-
-	}
-	//asar.DataBuffer = nil
-	//runtime.GC()
-	return aFileSystem, nil
-}
-
-func roundup(x, y uint32) uint32 {
-	return (x + y - 1) & ^(y - 1)
-}
