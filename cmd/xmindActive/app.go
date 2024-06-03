@@ -103,7 +103,7 @@ func start() error {
 	newRuntimeStr := runtimeStr[:insertPosition] + newContent + runtimeStr[insertPosition:]
 	newRuntimeDate := []byte(newRuntimeStr)
 	*runtimeFile.DataBuffer = newRuntimeDate
-	patch("main", "xmind.js", asarSys, "xmind.js")
+	patch("main", "xmind.b.js", asarSys, "xmind.js")
 	patch("renderer", "crypto.js", asarSys, "336784.js")
 	newAppAsar := asarSys.CreateAsar(asarFile)
 	err = newAppAsar.Save()

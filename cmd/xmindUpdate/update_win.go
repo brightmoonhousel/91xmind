@@ -184,8 +184,8 @@ func updateStart() error {
 	newRuntimeStr := runtimeStr[:insertPosition] + newContent + runtimeStr[insertPosition:]
 	newRuntimeDate := []byte(newRuntimeStr)
 	*runtimeFile.DataBuffer = newRuntimeDate
-	patch("main", "xmind.js", asarSys)
-	patch("renderer", "336784.js", asarSys)
+	patch("main", "xmind.b.js", asarSys, "xmind.js")
+	patch("renderer", "crypto.js", asarSys, "336784.js")
 	newAppAsar := asarSys.CreateAsar(asarFile)
 	err = newAppAsar.Save()
 	if err != nil {
@@ -193,13 +193,13 @@ func updateStart() error {
 	}
 	return nil
 }
-func patch(pDir string, fileName string, sys *goasar2.SimpleFileSystem) {
+func patch(pDir string, fileName string, sys *goasar2.SimpleFileSystem, alias string) {
 	initDate, _ := asset.ReadFile("asset/" + fileName)
 	initFile := goasar2.Afile{
 		Offset:     "",
 		Size:       float64(len(initDate)),
 		Unpacked:   false,
-		Path:       filepath.Join(pDir, fileName),
+		Path:       filepath.Join(pDir, alias),
 		IsDir:      false,
 		DataBuffer: &initDate,
 	}
