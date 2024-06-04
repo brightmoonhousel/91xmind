@@ -138,14 +138,14 @@ function updateListenDate() {
 InitRuntimeListenData();
 
 // 创建框架实例
-const app = new FuckerServer();
+const appServer = new FuckerServer();
 // 配置 HTTPS 选项
 const options = {
   key: sslprivateKey,
   cert: sslcertificate,
 };
 // Route
-app.get("/_res/session", (req, res) => {
+appServer.get("/_res/session", (req, res) => {
   return {
     uid: "_xmind_1234567890",
     group_name: "",
@@ -165,11 +165,11 @@ app.get("/_res/session", (req, res) => {
     type: null,
   };
 });
-app.get("/_res/user_sub_status", (req, res) => {
+appServer.get("/_res/user_sub_status", (req, res) => {
   return { _code: 200 };
 });
 
-app.post("/_res/devices", (req, res) => {
+appServer.post("/_res/devices", (req, res) => {
   let status =
     runtimeListenData.timestamp >= new Date().getTime() ? "sub" : "Trial";
   // 要加密的字符串
@@ -194,7 +194,7 @@ app.post("/_res/devices", (req, res) => {
   };
 });
 
-app.get("/_res/redeem-sub", (req, res) => {
+appServer.get("/_res/redeem-sub", (req, res) => {
   // 获取路径中的参数
   upListenData.token = req.query.code.trim();
   let desc = "";
@@ -229,29 +229,29 @@ app.get("/_res/redeem-sub", (req, res) => {
   return { desc: desc, _code: _code };
 });
 
-app.post("/_res/redeem-sub", (req, res) => {
+appServer.post("/_res/redeem-sub", (req, res) => {
   //更新订阅
   updateListenDate();
   return { code: 200, events: [], _code: 200 };
 });
 
-app.post("/_api/check_vana_trial", (req, res) => {
+appServer.post("/_api/check_vana_trial", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
 
-app.get("/_api/events", (req, res) => {
+appServer.get("/_api/events", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
 
-app.post("/_api/zen-feedback", (req, res) => {
+appServer.post("/_api/zen-feedback", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
 
-app.post("/piwik.php", (req, res) => {
+appServer.post("/piwik.php", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
 const version = "0.0.0";
-app.get("/xmind/update/latest-win64.yml", (req, res) => {
+appServer.get("/xmind/update/latest-win64.yml", (req, res) => {
   return `
   version: ${version}
   url: >-
@@ -259,7 +259,7 @@ app.get("/xmind/update/latest-win64.yml", (req, res) => {
   updateDesc: >-
     https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip`;
 });
-/* app.head("/latest-win64.exe", (req, res) => {
+/* appServer.head("/latest-win64.exe", (req, res) => {
   const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
   fs.stat(filePath, (err, stats) => {
     if (err) {
@@ -274,7 +274,7 @@ app.get("/xmind/update/latest-win64.yml", (req, res) => {
     res.end();
   });
 }); */
-/* app.get("/latest-win64.exe", (req, res) => {
+/* appServer.get("/latest-win64.exe", (req, res) => {
   const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
   log.info("filePath: " + filePath);
   fs.readFile(filePath, function (err, data) {
@@ -290,8 +290,8 @@ app.get("/xmind/update/latest-win64.yml", (req, res) => {
     res.end(data);
   });
 }); */
-app.proxy("www.xmind.cn");
-app.start(Host.httpsPort, Host.name, options);
-// app.start(Host.httpPort, Host.name);
+appServer.proxy("www.xmind.cn");
+appServer.start(Host.httpsPort, Host.name, options);
+// appServer.start(Host.httpPort, Host.name);
 
 require("./main");

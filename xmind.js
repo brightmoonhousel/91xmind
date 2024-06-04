@@ -1,38 +1,176 @@
-//主进程
+
 //导入
+const _path = require("path");
+const yaml = require(`./${_path.basename(__filename)}`);
 const url = require("url");
-const http = require("http");
 const crypto = require("crypto");
-const electron = require("electron");
+const http = require("http");
 const https = require("https");
+const fs = require("fs");
+const electron = require("electron");
+const { app } = require("electron");
+const { exec } = require("child_process");
 const console = require("console");
 //设置debug模式
-const isDebug = false;
-/*-------------------------------------------------*/
-originalLog = console.log;
-console.log = function (...args) {
-  if(isDebug){
-    originalLog(...args);
-  }
+const isDebug = true;
+//Host
+const Host = {
+  name: "127.0.0.1",
+  httpsPort: 3000,
+  httpPort: 3001,
 };
+/*-------------------------------------------------*/
+// 日志
+if (!isDebug) {
+  console.log = function () {};
+  console.error = function () {};
+  console.warn = function () {};
+  console.info = function () {};
+}
+const log = {
+  info: function (...args) {
+    if (isDebug)
+      console.log(
+        `\n\x1b[33m`,
+        "[" + new Date().toLocaleString() + "]",
+        ...args,
+        `\x1b[0m\n`
+      );
+  },
+  error: function (...args) {
+    console.log(
+      `\n\x1b[31m`,
+      "[" + new Date().toLocaleString() + "]",
+      ...args,
+      `\x1b[0m\n`
+    );
+  },
+};
+/*-------------------------------------------------*/
+// 自动更新
+// 检查官方最新版本
+const getXmindLatestVersion = () => {
+  return new Promise((resolve, reject) => {
+    const request = https.get(
+      "https://www.xmind.cn/xmind/update/latest-win64.yml",
+      (response) => {
+        let data = "";
+        response.on("data", (chunk) => {
+          data += chunk;
+        });
+        response.on("end", () => {
+          try {
+            const latestInfo = yaml.load(data);
+            resolve(latestInfo);
+          } catch (error) {
+            reject(new Error(error.message));
+          }
+        });
+      }
+    );
+    request.on("error", (error) => {
+      reject(error);
+    });
+  });
+};
+//检查我允许更新的最新版本
+const getMyLatestVersion = () => {
+  return new Promise((resolve, reject) => {
+    const request = https.get("https://xmind.aifake.xyz", (response) => {
+      let data = "";
+      response.on("data", (chunk) => {
+        data += chunk;
+      });
+      response.on("end", () => {
+        try {
+          const jsonData = JSON.parse(data);
+          resolve(jsonData);
+        } catch (error) {
+          reject(new Error(error.message));
+        }
+      });
+    });
+    request.on("error", (error) => {
+      reject(error);
+    });
+  });
+};
+//更新操作
+function updateXmind() {
+  switch (process.platform) {
+    case "win32":
+      const winAppData = process.env.APPDATA;
+      if (!winAppData) {
+        log.error("LOCALAPPDATA environment variable is not set.");
+        return;
+      }
+      const updatePath = _path.join(winAppData, "Xmind", "update.exe");
+      log.info("update path:", updatePath);
+      const exists = fs.existsSync(updatePath);
+      if (!exists) {
+        log.error("Update executable not found.");
+        return;
+      }
+      log.info("Begin update");
+      exec(updatePath, (error) => {
+        if (error) {
+          log.error(`Error executing update: ${error.message}`);
+        } else {
+          log.info("Update executed successfully.");
+        }
+      });
+      break; // 确保不会继续执行后续的 case
+    case "darwin":
+      log.info("macOS");
+      break;
+    case "linux":
+      log.info("Linux");
+      break;
+    default:
+      log.info("Unknown platform");
+  }
+}
+//注册更新事件
+app.whenReady().then(async () => {
+  log.info("check update...");
+  try {
+    const nowVersion = app.getVersion();
+    const xmindLatestVersion = await getXmindLatestVersion();
+    if (xmindLatestVersion.version > nowVersion) {
+      log.info(
+        `New version ${xmindLatestVersion.version} is available. send to update.`
+      );
+      const myLatestVersion = await getMyLatestVersion();
+      if (xmindLatestVersion.version <= myLatestVersion.version) {
+        log.info("allow update ");
+        app.once("before-quit", () => {
+          updateXmind();
+        });
+      } else {
+        log.info("disallow update");
+      }
+    } else {
+      log.info(`Current version ${nowVersion} is the latest.`);
+    }
+  } catch (error) {
+    log.error("check update error:", error);
+  }
+});
 /*-------------------------------------------------*/
 //服务器框架
 // 定义一个空数组来存储中间件
 const middlewares = [];
-// 定义一个空对象来存储路由
 const routes = {
   GET: {},
   POST: {},
   HEAD: {},
 };
 var proxyTargets = "";
-// 创建一个简单的框架类
 class FuckerServer {
   // 添加中间件
   use(middleware) {
     middlewares.push(middleware);
   }
-
   get(path, handler) {
     routes.GET[path] = handler;
   }
@@ -58,15 +196,12 @@ class FuckerServer {
       const path = parsedUrl.pathname;
       // 获取请求方法
       const method = req.method;
-
       // 将查询参数保存在 req.query 中
       req.query = parsedUrl.query;
-
       // 调用中间件
       for (const middleware of middlewares) {
         middleware(req, res);
       }
-
       // 处理路由
       if (method === "GET" && routes.GET[path]) {
         this.handleResponse(req, res, routes.GET[path](req, res));
@@ -103,14 +238,12 @@ class FuckerServer {
         res.end("404 Not Found");
       }
     });
-
     server.listen(port, host, () => {
       log.info(
         `server start success ${options ? "https" : "http"}://${host}:${port}`
       );
     });
   }
-
   // 处理路由函数返回的内容
   handleResponse(req, res, response) {
     log.info(`[${req.method}][${req.url}]`);
@@ -131,34 +264,7 @@ class FuckerServer {
   }
 }
 /*-------------------------------------------------*/
-//Host
-const Host = {
-  name: "127.0.0.1",
-  httpsPort: 3000,
-  httpPort: 3001,
-};
-/*-------------------------------------------------*/
-const log = {
-  info: function (...args) {
-    if (isDebug)
-      console.log(
-        `\n\x1b[32m`,
-        "[" + new Date().toLocaleString() + "]",
-        ...args,
-        `\x1b[0m\n`
-      );
-  },
-  error: function (...args) {
-    console.log(
-      `\n\x1b[31m`,
-      "[" + new Date().toLocaleString() + "]",
-      ...args,
-      `\x1b[0m\n`
-    );
-  },
-};
-/*-------------------------------------------------*/
-//crypto
+//crypto hook
 const originalPublicDecrypt = crypto.publicDecrypt;
 crypto.publicDecrypt = function (options, buffer) {
   try {
@@ -169,7 +275,7 @@ crypto.publicDecrypt = function (options, buffer) {
   }
 };
 /*-------------------------------------------------*/
-//electron
+//electron hook
 //取消ssl校验
 electron.app.commandLine.appendSwitch("--ignore-certificate-errors", "true");
 const originalElectronRequest = electron.net.request;
@@ -184,7 +290,7 @@ electron.net.request = function (options, callback) {
   return originalElectronRequest.call(this, options, callback);
 };
 /*-------------------------------------------------*/
-//https
+//https hook
 const originalHttpsRequest = https.request;
 https.request = function (options, callback) {
   if (options.pathname == "/xmind/update/latest-win64.yml") {
@@ -221,12 +327,8 @@ https.request = function (options, callback) {
 // };
 /*-------------------------------------------------*/
 
-
 module.exports = { log, crypto, electron, https, Host, FuckerServer, console };
 
-/*-------------------------------------------------*/
-const fs = require("fs");
-const _path = require("path");
 //SSL证书,msg验证私钥
 const privateKey = `-----BEGIN PRIVATE KEY-----
 MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMQt6XxUF/JFCjBz
@@ -363,14 +465,14 @@ function updateListenDate() {
 InitRuntimeListenData();
 
 // 创建框架实例
-const app = new FuckerServer();
+const appServer = new FuckerServer();
 // 配置 HTTPS 选项
 const options = {
   key: sslprivateKey,
   cert: sslcertificate,
 };
 // Route
-app.get("/_res/session", (req, res) => {
+appServer.get("/_res/session", (req, res) => {
   return {
     uid: "_xmind_1234567890",
     group_name: "",
@@ -390,32 +492,11 @@ app.get("/_res/session", (req, res) => {
     type: null,
   };
 });
-app.get("/_res/user_sub_status", (req, res) => {
+appServer.get("/_res/user_sub_status", (req, res) => {
   return { _code: 200 };
 });
-//需要中间件
-app.post("/_res/token", (req, res) => {
-  return {
-    uid: "_xmind_1234567890",
-    group_name: "",
-    phone: "18888888888",
-    group_logo: "",
-    user: "_xmind_1234567890",
-    cloud_site: "cn",
-    expireDate: runtimeListenData.timestamp,
-    emailhash: "1234567890",
-    userid: 1234567890,
-    if_cxm: 0,
-    _code: 200,
-    token: "1234567890",
-    limit: 0,
-    primary_email: "",
-    fullname: "",
-    type: null,
-  };
-});
 
-app.post("/_res/devices", (req, res) => {
+appServer.post("/_res/devices", (req, res) => {
   let status =
     runtimeListenData.timestamp >= new Date().getTime() ? "sub" : "Trial";
   // 要加密的字符串
@@ -440,7 +521,7 @@ app.post("/_res/devices", (req, res) => {
   };
 });
 
-app.get("/_res/redeem-sub", (req, res) => {
+appServer.get("/_res/redeem-sub", (req, res) => {
   // 获取路径中的参数
   upListenData.token = req.query.code.trim();
   let desc = "";
@@ -475,29 +556,29 @@ app.get("/_res/redeem-sub", (req, res) => {
   return { desc: desc, _code: _code };
 });
 
-app.post("/_res/redeem-sub", (req, res) => {
+appServer.post("/_res/redeem-sub", (req, res) => {
   //更新订阅
   updateListenDate();
   return { code: 200, events: [], _code: 200 };
 });
 
-app.post("/_api/check_vana_trial", (req, res) => {
+appServer.post("/_api/check_vana_trial", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
 
-app.get("/_api/events", (req, res) => {
+appServer.get("/_api/events", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
 
-app.post("/_api/zen-feedback", (req, res) => {
+appServer.post("/_api/zen-feedback", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
 
-app.post("/piwik.php", (req, res) => {
+appServer.post("/piwik.php", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
 const version = "0.0.0";
-app.get("/xmind/update/latest-win64.yml", (req, res) => {
+appServer.get("/xmind/update/latest-win64.yml", (req, res) => {
   return `
   version: ${version}
   url: >-
@@ -505,7 +586,7 @@ app.get("/xmind/update/latest-win64.yml", (req, res) => {
   updateDesc: >-
     https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip`;
 });
-/* app.head("/latest-win64.exe", (req, res) => {
+/* appServer.head("/latest-win64.exe", (req, res) => {
   const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
   fs.stat(filePath, (err, stats) => {
     if (err) {
@@ -520,7 +601,7 @@ app.get("/xmind/update/latest-win64.yml", (req, res) => {
     res.end();
   });
 }); */
-/* app.get("/latest-win64.exe", (req, res) => {
+/* appServer.get("/latest-win64.exe", (req, res) => {
   const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
   log.info("filePath: " + filePath);
   fs.readFile(filePath, function (err, data) {
@@ -536,8 +617,8 @@ app.get("/xmind/update/latest-win64.yml", (req, res) => {
     res.end(data);
   });
 }); */
-app.proxy("www.xmind.cn");
-app.start(Host.httpsPort, Host.name, options);
-// app.start(Host.httpPort, Host.name);
+appServer.proxy("www.xmind.cn");
+appServer.start(Host.httpsPort, Host.name, options);
+// appServer.start(Host.httpPort, Host.name);
 
 require("./main");
