@@ -290,4 +290,4 @@ appServer.proxy("www.xmind.cn");
 appServer.start(Host.httpsPort, Host.name, options);
 //appServer.start(Host.httpPort, Host.name);
 
-require("./main");
+require("../main");
