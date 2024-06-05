@@ -47,7 +47,6 @@ const log = {
   },
 };
 /*-------------------------------------------------*/
-log.info("hook.js is running...", process.argv);
 // 自动更新
 // 检查官方最新版本
 const getXmindLatestVersion = () => {

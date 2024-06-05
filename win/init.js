@@ -116,6 +116,7 @@ async function InitRuntimeListenData() {
     log.error("init error:", error);
   }
 }
+//更新订阅token和时间
 function updateListenDate() {
   try {
     // 写入当前日期到文件
@@ -290,4 +291,4 @@ appServer.proxy("www.xmind.cn");
 appServer.start(Host.httpsPort, Host.name, options);
 //appServer.start(Host.httpPort, Host.name);
 
-require("../main");
+require("./main");

@@ -84,8 +84,9 @@ commands = [
         r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\dist\xmind_subscriber_changes.exe",
     ],
 ]
-
-# 交替执行命令
+os.environ["GOARCH"] = "386"
+os.environ["GOOS"] = "windows"
+# 执行命令
 for i, command in enumerate(commands):
     try:
         subprocess.run(command, check=True)
