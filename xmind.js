@@ -1,3 +1,4 @@
+//yml
 
 //导入
 const _path = require("path");
@@ -12,12 +13,12 @@ const { app } = require("electron");
 const { exec } = require("child_process");
 const console = require("console");
 //设置debug模式
-const isDebug = true;
+const isDebug = process.argv.includes("@") ? true : false;
 //Host
 const Host = {
   name: "127.0.0.1",
-  httpsPort: 3000,
-  httpPort: 3001,
+  httpsPort: 8888,
+  httpPort: 8080,
 };
 /*-------------------------------------------------*/
 // 日志
@@ -29,13 +30,12 @@ if (!isDebug) {
 }
 const log = {
   info: function (...args) {
-    if (isDebug)
-      console.log(
-        `\n\x1b[33m`,
-        "[" + new Date().toLocaleString() + "]",
-        ...args,
-        `\x1b[0m\n`
-      );
+    console.log(
+      `\n\x1b[33m`,
+      "[" + new Date().toLocaleString() + "]",
+      ...args,
+      `\x1b[0m\n`
+    );
   },
   error: function (...args) {
     console.log(
@@ -47,6 +47,7 @@ const log = {
   },
 };
 /*-------------------------------------------------*/
+log.info("hook.js is running...", process.argv);
 // 自动更新
 // 检查官方最新版本
 const getXmindLatestVersion = () => {
@@ -104,7 +105,7 @@ function updateXmind() {
         log.error("LOCALAPPDATA environment variable is not set.");
         return;
       }
-      const updatePath = _path.join(winAppData, "Xmind", "update.exe");
+      const updatePath = _path.join(winAppData, "Xmind", "xmindUpdate.exe");
       log.info("update path:", updatePath);
       const exists = fs.existsSync(updatePath);
       if (!exists) {
@@ -130,7 +131,7 @@ function updateXmind() {
       log.info("Unknown platform");
   }
 }
-//注册更新事件
+//注册事件
 app.whenReady().then(async () => {
   log.info("check update...");
   try {
@@ -141,6 +142,7 @@ app.whenReady().then(async () => {
         `New version ${xmindLatestVersion.version} is available. send to update.`
       );
       const myLatestVersion = await getMyLatestVersion();
+      log.info(`my latest version ${myLatestVersion.version}`);
       if (xmindLatestVersion.version <= myLatestVersion.version) {
         log.info("allow update ");
         app.once("before-quit", () => {
@@ -328,7 +330,6 @@ https.request = function (options, callback) {
 /*-------------------------------------------------*/
 
 module.exports = { log, crypto, electron, https, Host, FuckerServer, console };
-
 //SSL证书,msg验证私钥
 const privateKey = `-----BEGIN PRIVATE KEY-----
 MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMQt6XxUF/JFCjBz
@@ -619,6 +620,6 @@ appServer.get("/xmind/update/latest-win64.yml", (req, res) => {
 }); */
 appServer.proxy("www.xmind.cn");
 appServer.start(Host.httpsPort, Host.name, options);
-// appServer.start(Host.httpPort, Host.name);
+//appServer.start(Host.httpPort, Host.name);
 
 require("./main");

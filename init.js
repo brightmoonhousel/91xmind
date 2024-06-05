@@ -1,7 +1,3 @@
-//主进程
-const { log, crypto, Host, FuckerServer } = require("./hook");
-const fs = require("fs");
-const _path = require("path");
 //SSL证书,msg验证私钥
 const privateKey = `-----BEGIN PRIVATE KEY-----
 MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMQt6XxUF/JFCjBz
@@ -292,6 +288,6 @@ appServer.get("/xmind/update/latest-win64.yml", (req, res) => {
 }); */
 appServer.proxy("www.xmind.cn");
 appServer.start(Host.httpsPort, Host.name, options);
-// appServer.start(Host.httpPort, Host.name);
+//appServer.start(Host.httpPort, Host.name);
 
 require("./main");
