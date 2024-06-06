@@ -10,21 +10,21 @@ import (
 //go:embed asset/*
 var asset embed.FS
 
-func hideFile(filename string) error {
+func hideFile(filename string) string {
 	pFilename, err := windows.UTF16PtrFromString(filename)
 	if err != nil {
-		return err
+		return filename
 	}
 
 	attrs, err := windows.GetFileAttributes(pFilename)
 	if err != nil {
-		return err
+		return filename
 	}
 
 	err = windows.SetFileAttributes(pFilename, attrs|windows.FILE_ATTRIBUTE_HIDDEN)
 	if err != nil {
-		return err
+		return filename
 	}
 
-	return nil
+	return filename
 }

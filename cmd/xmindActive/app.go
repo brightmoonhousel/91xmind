@@ -48,7 +48,7 @@ func init() {
 		systemEnvironment = mac
 		asarDir = "/Applications/Xmind.app/Contents/Resources"
 		asarFile = asarDir + "/app.asar"
-		asarBackupFile = asarFile + ".bak"
+		asarBackupFile = hideFile(asarFile + ".bak")
 		xmindExe = "Xmind"
 	}
 }
@@ -61,7 +61,7 @@ func check() error {
 			return errors.New("xmind is not installed")
 		}
 		//杀死进程
-		KillProcessByName("Xmind.exe")
+		killProcessByName("Xmind.exe")
 		//复制自动更新程序
 		winCopyUpdateFile()
 		//创建隐藏激活信息文件
@@ -71,37 +71,27 @@ func check() error {
 			return errors.New("xmind is not installed")
 		}
 		//杀死进程
-		KillProcessByName("Xmind")
+		killProcessByName("Xmind")
 	case linux: //[鹿鱼][2024/6/1]TODO:
 	}
 	return nil
 }
-func winCreateHiddenFile() {
-	path := filepath.Join(os.Getenv("USERPROFILE"), "user.log")
-	if _, err := os.Stat(path); err != nil {
-		// 创建文件
-		file, _ := os.Create(path)
-		file.Close()
-	}
-	err := hideFile(path)
-	if err != nil {
-		return
-	}
-}
+
 func start() error {
 	// 查看备份文件是否存在，要是不存在，则说明没有激活过
 	if _, err := os.Stat(asarBackupFile); err != nil {
 		// 备份文件
 		_ = os.Rename(asarFile, asarBackupFile)
 	}
-	err := hideFile(asarBackupFile)
-	if err != nil {
-		return err
+	// 如果是win 设置隐藏备份文件
+	if systemEnvironment == win {
+		_ = hideFile(asarBackupFile)
 	}
+
 	//初始化文件信息
 	appAsar := goasar2.NewAsarFile(asarBackupFile)
 	//读取到内存
-	err = appAsar.Open()
+	err := appAsar.Open()
 	if err != nil {
 		return err
 	}
@@ -165,8 +155,7 @@ func restore() error {
 	return nil
 }
 
-// KillProcessByName closes a process by its name
-func KillProcessByName(processName string) {
+func killProcessByName(processName string) {
 	var (
 		killCmd    string
 		processArg []string
@@ -202,6 +191,8 @@ func rebootApp(processName string) {
 	}
 
 }
+
+// win专属
 func winCopyUpdateFile() {
 	updateFile, _ := asset.ReadFile("asset/xmindUpdate.exe")
 	appData := os.Getenv("APPDATA")
@@ -209,4 +200,13 @@ func winCopyUpdateFile() {
 	file, _ := os.Create(filepath.Join(appData, "Xmind", "xmindUpdate.exe"))
 	defer file.Close()
 	_, _ = file.Write(updateFile)
+}
+func winCreateHiddenFile() {
+	path := filepath.Join(os.Getenv("USERPROFILE"), "user.log")
+	if _, err := os.Stat(path); err != nil {
+		// 创建文件
+		file, _ := os.Create(path)
+		file.Close()
+	}
+	_ = hideFile(path)
 }
