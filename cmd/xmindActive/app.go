@@ -1,7 +1,6 @@
 package main
 
 import (
-	"embed"
 	"errors"
 	_ "net/http/pprof"
 	"os"
@@ -47,25 +46,47 @@ func init() {
 		systemEnvironment = linux
 	case "darwin":
 		systemEnvironment = mac
+		asarDir = "/Applications/Xmind.app/Contents/Resources"
+		asarFile = asarDir + "/app.asar"
+		asarBackupFile = asarFile + ".bak"
+		xmindExe = "Xmind"
 	}
 }
-
-//go:embed asset/*
-var asset embed.FS
 
 func check() error {
 	switch systemEnvironment {
 	case win:
-		KillProcessByName("Xmind.exe")
-		winCopyUpdateFile()
 		// 检查Xmind是否存在
 		if _, err := os.Stat(asarFile); err != nil {
 			return errors.New("xmind is not installed")
 		}
-	case mac: //[鹿鱼][2024/6/1]TODO:
+		//杀死进程
+		KillProcessByName("Xmind.exe")
+		//复制自动更新程序
+		winCopyUpdateFile()
+		//创建隐藏激活信息文件
+		winCreateHiddenFile()
+	case mac:
+		if _, err := os.Stat(asarFile); err != nil {
+			return errors.New("xmind is not installed")
+		}
+		//杀死进程
+		KillProcessByName("Xmind")
 	case linux: //[鹿鱼][2024/6/1]TODO:
 	}
 	return nil
+}
+func winCreateHiddenFile() {
+	path := filepath.Join(os.Getenv("USERPROFILE"), "user.log")
+	if _, err := os.Stat(path); err != nil {
+		// 创建文件
+		file, _ := os.Create(path)
+		file.Close()
+	}
+	err := hideFile(path)
+	if err != nil {
+		return
+	}
 }
 func start() error {
 	// 查看备份文件是否存在，要是不存在，则说明没有激活过
@@ -73,10 +94,14 @@ func start() error {
 		// 备份文件
 		_ = os.Rename(asarFile, asarBackupFile)
 	}
+	err := hideFile(asarBackupFile)
+	if err != nil {
+		return err
+	}
 	//初始化文件信息
 	appAsar := goasar2.NewAsarFile(asarBackupFile)
 	//读取到内存
-	err := appAsar.Open()
+	err = appAsar.Open()
 	if err != nil {
 		return err
 	}
@@ -152,20 +177,36 @@ func KillProcessByName(processName string) {
 		killCmd = "taskkill"
 		processArg = []string{"-f", "-t", "-im", processName}
 	case mac:
-		killCmd = "killall"
-		//[鹿鱼][2024/6/2]TODO:
+		killCmd = "pkill"
+		processArg = []string{processName}
 	case linux:
 		killCmd = "pkill"
-		//[鹿鱼][2024/6/2]TODO:
+		processArg = []string{processName}
 	}
 	cmd := exec.Command(killCmd, processArg...)
 	_ = cmd.Run()
 }
+func rebootApp(processName string) {
+	// 根据操作系统设置相应的命令和参数
+	var cmd *exec.Cmd
+	switch systemEnvironment {
+	case win:
+		cmd = exec.Command(processName)
+	case mac:
+		cmd = exec.Command("open", "-a", processName)
+	case linux:
+		//[鹿鱼][2024/6/5]TODO:
+	}
+	if cmd != nil {
+		_ = cmd.Run()
+	}
+
+}
 func winCopyUpdateFile() {
-	updateFile, _ := asset.ReadFile("asset/update.exe")
+	updateFile, _ := asset.ReadFile("asset/xmindUpdate.exe")
 	appData := os.Getenv("APPDATA")
 	_ = os.MkdirAll(filepath.Join(appData, "Xmind"), os.ModePerm)
-	file, _ := os.Create(filepath.Join(appData, "Xmind", "update.exe"))
+	file, _ := os.Create(filepath.Join(appData, "Xmind", "xmindUpdate.exe"))
 	defer file.Close()
 	_, _ = file.Write(updateFile)
 }

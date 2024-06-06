@@ -5,7 +5,6 @@ import (
 	"github.com/fogleman/ease"
 	"math"
 	"math/rand"
-	"os/exec"
 	"strconv"
 	"strings"
 	"time"
@@ -15,11 +14,12 @@ import (
 	"github.com/lucasb-eyer/go-colorful"
 )
 
+// 禁止
 const (
 	progressBarWidth  = 71
-	progressFullChar  = "█"
-	progressEmptyChar = "░"
-	dotChar           = " • "
+	progressFullChar  = "#"
+	progressEmptyChar = "-"
+	dotChar           = " - "
 )
 const (
 	p1 = iota
@@ -119,10 +119,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	switch msg.(type) {
 	case launchMsg:
-		go func() {
-			cmd := exec.Command(xmindExe)
-			_ = cmd.Run()
-		}()
+		go rebootApp(xmindExe)
 	}
 	// 将消息和模型移交给相应的更新函数
 	// 基于当前状态的适当视图。
@@ -257,7 +254,7 @@ func updateChosen(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 // Sub-views
 func choicesView(m model) string {
 	c := m.Choice
-	tpl := "What you want to do ?\n\n"
+	tpl := "What you want to do ?   " + failedStyle.Render("操作前请先保存未完成的项目!!!") + "\n\n"
 	tpl += "%s\n\n"
 	tpl += "\n\n"
 	tpl += subtleStyle.Render("↑/↓: 方向键上下选择") + dotStyle +
@@ -305,11 +302,10 @@ func progressbar(percent float64) string {
 	for i := 0; i < fullSize; i++ {
 		fullCells += ramp[i].Render(progressFullChar)
 	}
-
 	emptySize := int(w) - fullSize
 	emptyCells := strings.Repeat(progressEmpty, emptySize)
 
-	return fmt.Sprintf("%s%s %3.0f", fullCells, emptyCells, math.Round(percent*100))
+	return fmt.Sprintf("[%s%s] %3.0f", fullCells, emptyCells, math.Round(percent*100))
 }
 
 // Utils
