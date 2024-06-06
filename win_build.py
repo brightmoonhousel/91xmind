@@ -3,6 +3,10 @@ import shutil
 import subprocess
 import time
 
+
+
+os.environ["GOARCH"] = "amd64"
+os.environ["GOOS"] = "windows"
 # 读取 hook.js 和 init.js 的内容
 with open("win/hook.js", "r", encoding="utf-8") as f:
     hook_content = f.read()
@@ -53,6 +57,17 @@ for target_dir in target_dirs:
             shutil.copy(full_file_name, target_dir)
             print(f"Copied {full_file_name} to {target_dir}")
 
+updateFileSrc = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindUpdate"
+updateFileDist = (
+    r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\asset\xmindUpdate.exe"
+)
+activeFileSrc = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive"
+activeFileDist = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\dist\xmind_server_changes_win.exe"
+outfile = os.path.join(
+    os.environ["USERPROFILE"],
+    "Desktop",
+    "xmind_server_changes_win.exe",
+)
 # 定义要执行的 garble 和 upx 命令
 commands = [
     [
@@ -60,32 +75,33 @@ commands = [
         "-tiny",
         "build",
         "-o",
-        r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\asset\xmindUpdate.exe",
-        r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindUpdate",
+        updateFileDist,
+        updateFileSrc,
     ],
     [
         "upx",
         "--best",
         "--lzma",
-        r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\asset\xmindUpdate.exe",
+        updateFileDist,
     ],
     [
         "garble",
         "-tiny",
         "build",
         "-o",
-        r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\dist\xmind_subscriber_changes.exe",
-        r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive",
+        activeFileDist,
+        activeFileSrc,
     ],
     [
         "upx",
         "--best",
         "--lzma",
-        r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\dist\xmind_subscriber_changes.exe",
+        "-o",
+        outfile,
+        activeFileDist,
     ],
 ]
-os.environ["GOARCH"] = "386"
-os.environ["GOOS"] = "windows"
+os.remove(outfile)
 # 执行命令
 for i, command in enumerate(commands):
     try:
@@ -93,16 +109,3 @@ for i, command in enumerate(commands):
         print(f'Successfully ran command: {" ".join(command)}')
     except subprocess.CalledProcessError as e:
         print(f'Error running command: {" ".join(command)}\n{e}')
-
-# 源文件路径
-source_file = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\dist\xmind_subscriber_changes.exe"
-
-# 目标路径为桌面
-desktop_path = os.path.join(os.path.join(os.environ["USERPROFILE"]), "Desktop")
-
-# 使用shutil复制文件
-try:
-    shutil.copy(source_file, desktop_path)
-    print(f"Successfully copied file to desktop.")
-except Exception as e:
-    print(f"Error copying file to desktop.\n{e}")
