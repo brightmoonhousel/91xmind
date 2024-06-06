@@ -1,3 +1,4 @@
+//go:generate goversioninfo -icon=../res/icon.ico -manifest=../res/go.exe.manifest
 package main
 
 import (
@@ -162,7 +163,7 @@ func updateChoices(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.Chosen = true
 			if m.Choice == 0 {
 				go func() {
-					err := check()
+					err := checkEnv()
 					if err != nil {
 						time.Sleep(time.Second * 1)
 						p.Send(failedMsg{err.Error()})
@@ -181,7 +182,7 @@ func updateChoices(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				}()
 			} else if m.Choice == 1 {
 				go func() {
-					err := check()
+					err := checkEnv()
 					if err != nil {
 						time.Sleep(time.Second * 1)
 						p.Send(failedMsg{err.Error()})

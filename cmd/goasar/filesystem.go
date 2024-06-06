@@ -65,11 +65,6 @@ func (fs *SimpleFileSystem) ListFiles() {
 	}
 }
 
-// ExtractAsar 解压文件
-func Extract(output string) {
-
-}
-
 func (fs *SimpleFileSystem) CreateAsar(path string) *Asar {
 	offset := 0
 	var byteBuffer bytes.Buffer

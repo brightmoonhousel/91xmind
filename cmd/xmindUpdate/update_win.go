@@ -1,4 +1,4 @@
-//go:build !update
+//go:generate goversioninfo -icon=../res/icon.ico -manifest=../res/go.exe.manifest
 
 package main
 
@@ -53,6 +53,10 @@ func init() {
 	}
 	// C:\Users\chiro\AppData\Local\Programs\Xmind\Xmind.exe
 	xmindDir = filepath.Join(localAppData, "Programs", "Xmind")
+	//如果xmindDir不存在，退出
+	if _, err := os.Stat(xmindDir); os.IsNotExist(err) {
+		return
+	}
 	// C:\Users\chiro\AppData\Local\Programs\Xmind\Xmind.exe
 	xmindExe = filepath.Join(localAppData, "Programs", "Xmind", "Xmind.exe")
 	// C:\Users\chiro\AppData\Local\Programs\Xmind\resources
@@ -338,7 +342,7 @@ func killProcessByName(processName string) {
 	_ = cmd.Run()
 }
 
-// md5
+// md5校验文件完整性
 func getMD5(name string) (string, error) {
 	// 打开文件
 	file, err := os.Open(name)

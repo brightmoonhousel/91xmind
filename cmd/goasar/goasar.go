@@ -88,7 +88,7 @@ func (asar *Asar) Open() error {
 	return nil
 }
 func (asar *Asar) Save() error {
-	// 创建一个新的文件
+
 	fp, err := os.Create(asar.path)
 	defer fp.Close()
 	if err != nil {
