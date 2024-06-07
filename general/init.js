@@ -76,7 +76,7 @@ function writeDateToFile(filePath, token, timestamp) {
   buffer.writeDoubleLE(timestamp, 27);
   fs.writeFile(filePath, buffer, (err) => {
     if (err) {
-      log.error("写入文件失败:", err);
+      log.error("writeDateToFileError:", err);
       return;
     }
   });
@@ -197,8 +197,8 @@ appServer.get("/_res/redeem-sub", (req, res) => {
   let desc = "";
   let _code = 404;
   // token长度为27，且没用过
-  console.log(upListenData.token);
-  console.log(runtimeListenData.token);
+  log.info(upListenData.token);
+  log.info(runtimeListenData.token);
   if (
     upListenData.token.length == 27 &&
     upListenData.token !== runtimeListenData.token
@@ -248,6 +248,16 @@ appServer.post("/piwik.php", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
 const version = "0.0.0";
+//https://www.xmind.cn/xmind/update/latest-mac.json
+appServer.get("/xmind/update/latest-mac.json", (req, res) => {
+  return {
+    version: version,
+    url: 'https://www.xmind.cn/xmind/downloads/Xmind-darwin-universal-202405232307.zip',
+    name: 'Xmind-darwin-universal-202405232307.zip',
+    updateDesc: 'https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip'
+};
+});
+//https://www.xmind.cn/xmind/update/latest-win64.yml
 appServer.get("/xmind/update/latest-win64.yml", (req, res) => {
   return `
   version: ${version}
@@ -256,37 +266,7 @@ appServer.get("/xmind/update/latest-win64.yml", (req, res) => {
   updateDesc: >-
     https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip`;
 });
-/* appServer.head("/latest-win64.exe", (req, res) => {
-  const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
-  fs.stat(filePath, (err, stats) => {
-    if (err) {
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("File not found");
-      return;
-    }
-    res.writeHead(200, {
-      "Content-Type": "application/octet-stream",
-      "Content-Length": stats.size,
-    });
-    res.end();
-  });
-}); */
-/* appServer.get("/latest-win64.exe", (req, res) => {
-  const filePath = `C:\\Users\\chiro\\Downloads\\Programs\\hook.exe`;
-  log.info("filePath: " + filePath);
-  fs.readFile(filePath, function (err, data) {
-    if (err) {
-      res.writeHead(500, { "Content-Type": "text/plain" });
-      res.end("Internal Server Error");
-      return;
-    }
-    res.writeHead(200, {
-      "Content-Type": "application/octet-stream",
-      "Content-Length": `${data.length}`,
-    });
-    res.end(data);
-  });
-}); */
+
 appServer.proxy("www.xmind.cn");
 appServer.start(Host.httpsPort, Host.name, options);
 //appServer.start(Host.httpPort, Host.name);

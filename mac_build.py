@@ -9,7 +9,7 @@ os.environ["GOOS"] = "darwin"
 # 读取 hook.js 和 init.js 的内容
 with open("mac/hook.js", "r", encoding="utf-8") as f:
     hook_content = f.read()
-with open("mac/init.js", "r", encoding="utf-8") as f:
+with open("general/init.js", "r", encoding="utf-8") as f:
     init_content = f.read()
 # 拼接内容
 xmind_content = hook_content + init_content
