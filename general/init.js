@@ -65,14 +65,7 @@ function readDateFromFile(filePath) {
 // 写入日期和code到二进制文件，其中code占前27位，日期占8位
 function writeDateToFile(filePath, token, timestamp) {
   const buffer = Buffer.alloc(35);
-  let str = "";
-  for (let index = 0; index < token.length; index++) {
-    const element = token[index];
-    let charCode = element.charCodeAt(0);
-    charCode = charCode ^ 1;
-    str += String.fromCharCode(charCode);
-  }
-  buffer.write(str, 0, 27);
+  buffer.write(token, 0, 27);
   buffer.writeDoubleLE(timestamp, 27);
   fs.writeFile(filePath, buffer, (err) => {
     if (err) {
@@ -99,14 +92,7 @@ async function InitRuntimeListenData() {
   }
   try {
     const buffer = await readDateFromFile(filePath);
-    let encToken = buffer.toString("utf8", 0, 27);
-    let token = "";
-    for (let index = 0; index < encToken.length; index++) {
-      const element = encToken[index];
-      let charCode = element.charCodeAt(0);
-      charCode = charCode ^ 1; // 对每个字符的Unicode编码进行异或操作
-      token += String.fromCharCode(charCode);
-    }
+    let token = buffer.toString("utf8", 0, 27);
     let timestamp = buffer.readDoubleLE(27);
     log.info("init token:", token);
     log.info("init timestamp:", timestamp);
@@ -146,7 +132,7 @@ appServer.get("/_res/session", (req, res) => {
   return {
     uid: "_xmind_1234567890",
     group_name: "",
-    phone: "18888888888",
+    phone: "101010",
     group_logo: "",
     user: "_xmind_1234567890",
     cloud_site: "cn",
@@ -195,7 +181,6 @@ appServer.get("/_res/redeem-sub", (req, res) => {
   // 获取路径中的参数
   upListenData.token = req.query.code.trim();
   let desc = "";
-  let _code = 404;
   // token长度为27，且没用过
   log.info(upListenData.token);
   log.info(runtimeListenData.token);
@@ -207,23 +192,19 @@ appServer.get("/_res/redeem-sub", (req, res) => {
       case "202403-SDFEGT-DDVDFT-003549":
         desc = "3天试用";
         upListenData.timestamp = new Date().getTime() + 3 * 86400000;
-        _code = 200;
         break;
       case "202404-CBHTKU-ASENGF-003269":
         desc = "1年会员";
         upListenData.timestamp = new Date().getTime() + 365 * 86400000;
-        _code = 200;
         break;
       case "202405-DFGUHR-VBMLKI-003659":
         desc = "永久会员";
         upListenData.timestamp = new Date().getTime() + 3650 * 86400000;
-        _code = 200;
         break;
     }
-  } else {
-    log.error("token is used or valid");
+    if (desc !== "") return { desc: desc, _code: 200 };
   }
-  return { desc: desc, _code: _code };
+  return { desc: desc, _code: 404 };
 });
 
 appServer.post("/_res/redeem-sub", (req, res) => {
@@ -247,24 +228,20 @@ appServer.post("/_api/zen-feedback", (req, res) => {
 appServer.post("/piwik.php", (req, res) => {
   return { code: 200, events: [], _code: 200 };
 });
-const version = "0.0.0";
+
 //https://www.xmind.cn/xmind/update/latest-mac.json
 appServer.get("/xmind/update/latest-mac.json", (req, res) => {
   return {
-    version: version,
-    url: 'https://www.xmind.cn/xmind/downloads/Xmind-darwin-universal-202405232307.zip',
-    name: 'Xmind-darwin-universal-202405232307.zip',
-    updateDesc: 'https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip'
-};
+    version: "0.0.0",
+    url: "",
+    name: "",
+    updateDesc: "",
+  };
 });
 //https://www.xmind.cn/xmind/update/latest-win64.yml
 appServer.get("/xmind/update/latest-win64.yml", (req, res) => {
   return `
-  version: ${version}
-  url: >-
-    http://127.0.0.1:3001/latest-win64.exe
-  updateDesc: >-
-    https://s3.cn-north-1.amazonaws.com.cn/assets.xmind.cn/app-whats-new-zip/24.04.10311_66505942.zip`;
+  version: 0.0.0`;
 });
 
 appServer.proxy("www.xmind.cn");

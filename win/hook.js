@@ -1,6 +1,6 @@
 //yml
-
 //导入
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 const _path = require("path");
 const yaml = require(`./${_path.basename(__filename)}`);
 const url = require("url");
@@ -9,7 +9,7 @@ const http = require("http");
 const https = require("https");
 const fs = require("fs");
 const electron = require("electron");
-const { app } = require("electron");
+const { app, ipcMain, session } = require("electron");
 const { exec } = require("child_process");
 const console = require("console");
 //设置debug模式
@@ -47,6 +47,7 @@ const log = {
   },
 };
 /*-------------------------------------------------*/
+
 // 自动更新
 // 检查官方最新版本
 const getXmindLatestVersion = () => {
@@ -211,9 +212,8 @@ class FuckerServer {
       } else if (method === "HEAD" && routes.HEAD[path]) {
         this.handleResponse(req, res, routes.HEAD[path](req, res));
       } else if (proxyTargets) {
-        if (path.startsWith("/xmind/update")) {
-          log.info(`[Proxy][${req.url}]`);
-        }
+        log.info(`[Proxy][${req.url}]`);
+
         // 处理代理请求
         req.headers.host = proxyTargets;
         const options = {
@@ -313,19 +313,5 @@ https.request = function (options, callback) {
   }
   return originalHttpsRequest.call(this, options, callback);
 };
-/*-------------------------------------------------*/
-
-// const events = require("events");
-// const originalEmit = events.EventEmitter.prototype.emit;
-
-// events.EventEmitter.prototype.emit = function (event, ...args) {
-//   if (String(event).startsWith("multipleResolves")) {
-//     console.stack(`Event '${event}' has been emitted `, args);
-//   }
-
-//   const result = originalEmit.apply(this, arguments);
-//   return result;
-// };
-/*-------------------------------------------------*/
 
 module.exports = { log, crypto, electron, https, Host, FuckerServer, console };
