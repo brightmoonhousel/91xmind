@@ -20,11 +20,11 @@ import LayoutFooter from './components/LayoutFooter.vue'
 
 <style lang="scss" scoped>
 .layout-container {
+  //全局缩放
   height: 100vh;
   .vertical-container {
     display: flex; /* 设置容器为 flex 布局 */
     flex-direction: column; /* 将子元素排列方向设置为垂直方向（列） */
-    flex: 1; /* 使容器占满剩余空间 */
   }
 }
 </style>
