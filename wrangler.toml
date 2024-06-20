@@ -1,0 +1,21 @@
+name = "xmind-api"
+compatibility_date = "2023-12-01"
+
+[vars]
+latestversion = "24.04.10311"
+
+# [[kv_namespaces]]
+# binding = "MY_KV_NAMESPACE"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# [[r2_buckets]]
+# binding = "MY_BUCKET"
+# bucket_name = "my-bucket"
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "d1-xmind"
+database_id = "807464e9-4e53-4097-89dd-8de59dfe5fee"
+
+# [ai]
+# binding = "AI"
