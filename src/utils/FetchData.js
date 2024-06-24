@@ -1,4 +1,3 @@
-//http请求框架
 class FetchData {
     constructor(baseUrl) {
       this.baseUrl = baseUrl;

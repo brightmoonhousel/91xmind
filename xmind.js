@@ -13,6 +13,11 @@ const electron = require("electron");
 const { app } = require("electron");
 const { exec } = require("child_process");
 const console = require("console");
+//msg验证私钥
+const privateKey = `-----BEGIN PRIVATE KEY-----\nMIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMQt6XxUF/JFCjBz\n1vUt+LgsyMHuLTD1y9YxYlB6wtysSggrBW+Cni1fjND3sGaegLmUYOsEs8L8SBxe\nObPZW7/3gVDRVouMCGcl7KKdpbnA1msqbf3V5vp+Odfv9yM57z+lvweSWY9+yyGB\nOnD88TWAnptyDtTJsy3I+falO4KtAgMBAAECgYAaL7a27dK0eBrAFPZgi95jVzcF\nC/HkUyr+UGE7NOfF5QmMxZFYLStICzUUv7tAN3AfVXsKY/pK0Lofb0RsiVsBrODO\njP+lPu7tnPTLjcDEpia0ZWtC18gPsEaJnM8OJncsp48G0KVhAQszvhBRtWYhbpEb\n88ysRNUcCBcav0VAgQJBAPC5/eYTtV/wq4sisIWbBkUxFsd5mBQ590tL0rDQWOsL\nQRuaOp7y5pNwjlwCBgOonYJu4J02Mm10QowQnXjtjhUCQQDQoFx29fuN8iRfXw8q\nhvGNzu1B1opsQewhEnyLkbE2vQpmN5O4ZkKovkhtUxz28nmnuaoQ4JeMFMDyI3EZ\nk2A5AkEA27/NqSRApC4dSswF/FECLlObicjULVKlDtVOph3rrdT+QGZQMR1noxxS\nuGcYemqILrNs09bPvd8tiJL6TZP96QJBAIIp2ybZmCZa0jiyvWqiIOmCFmNCcMDU\nbHfB6fTGZJOrZGab/E1LeAGCHvweo+6rIB32Z9X52nOqqysn07PKUHkCQGqVcVRm\nO+e+CXaDO8Jl3RIVkEnv+GPNBNB/9HdQTD72XyRNd8oyZboVi8nA7wEzC3MPKosO\n1dO8k4gsMqjRGXE=\n-----END PRIVATE KEY-----`;
+//SSL证书
+const sslprivateKey = `-----BEGIN PRIVATE KEY-----\nMIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAKf9z6kO5CZILS89\nONX30jntb5eOJRalY4YtJLYpvbQpLMNnrsH7gNtxx9n6nqK6OorDmDKxyT5BeK5q\n8Z9Li5vrkgYk6cvyLtuL4ANp9213TCa1XL0pIneVPCcF8luPg5UqVDNMi8RS1eNf\nLC08eJNcawiwZQPYBx2U6ynWSR9HAgMBAAECgYA2F+15Q5lFlnIuRul5RK6GBqWr\nSJM6wpDUkM7EdZZnX+bRGR7VydWJVA8FasUQIyVcr3Tfxg3GJTDmAPvCzoGqctb5\nztrOBOqmCUqOitYUU/xX3lAEWVFhBxR1cYcA6cBl/9v66cQgrBKzoa1Oftc/YhfG\ngxGHFhv9fwR/lil8YQJBANCaf1f8OkMti3adGGMFhxN4up+DXBq+BgwOlwWaQf29\nRe0qd9+OChKPTORNEsGBYkuDtN3mzZoMAqhJElEoEjcCQQDOKRkXCnRXl+UsaYhy\nL/XFb4marC7nF18H0ckKluJsy6/DEKLKcpqr9TeAgELpPUHpbXCvCJ/b2jwpwt/k\nORNxAkEAn8rZZXKmxrLqtA+ekKu5TucaPfqH4UxSoYXDld0WU+Ja4FO5w5uwh4sR\n4YhQp74Op73aHGkicbBlkLd4uoYxfQJBAIa5fNf90QHdFbrsTGqyxN39geM+WnhS\nYZvukH8HE3kdswK6wGekdUeivF6RcyiRC53MEzOPY0h9WYvA+ide1UECQCKkZmmn\nhlGUiTJcf9YSC6zmcocwy7BMbZO+cEALVhI0kVIUphXOIrDLBT3/yEt9vZMBSOPd\n2RGI1IqfhYRwA/E=\n-----END PRIVATE KEY-----`;
+const sslcertificate = `-----BEGIN CERTIFICATE-----\nMIICMzCCAZygAwIBAgIUFzjrpBExRtwS7n7lyvQKknabW6gwDQYJKoZIhvcNAQEF\nBQAwKzENMAsGA1UEAwwEbnVsbDENMAsGA1UECgwEbnVsbDELMAkGA1UEBhMCRlIw\nIBcNMjQwNTI1MDE0MTAwWhgPMjEwMDEyMzExNTU1MDBaMF0xCzAJBgNVBAYTAkZS\nMQ0wCwYDVQQIDARudWxsMQ0wCwYDVQQHDARudWxsMQ0wCwYDVQQKDARudWxsMQ0w\nCwYDVQQLDARudWxsMRIwEAYDVQQDDAkxMjcuMC4wLjEwgZ8wDQYJKoZIhvcNAQEB\nBQADgY0AMIGJAoGBAKf9z6kO5CZILS89ONX30jntb5eOJRalY4YtJLYpvbQpLMNn\nrsH7gNtxx9n6nqK6OorDmDKxyT5BeK5q8Z9Li5vrkgYk6cvyLtuL4ANp9213TCa1\nXL0pIneVPCcF8luPg5UqVDNMi8RS1eNfLC08eJNcawiwZQPYBx2U6ynWSR9HAgMB\nAAGjIDAeMAsGA1UdEQQEMAKCADAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEB\nBQUAA4GBAAM5zHwbTjYlCkkv8LblibwKgK/uUzZtVex9SjSmR1qbUNSxypRZ9prL\nixFrbJ0EB5j36/1vxLniNQvboKQ2DsGKe/1I9Y2eUHu9K5I4q7CSdz58PmwqQ9N/\nSS+elu5/ZqpfOncQVYxQ0SLSZbwqYnRGQPQLFh03TE/fbwTSf8Rk\n-----END CERTIFICATE-----`;
 //取消ssl校验
 app.commandLine.appendSwitch("--ignore-certificate-errors", "true");
 // 设置debug模式
@@ -45,14 +50,8 @@ console.info = function (...args) {
     }
   });
 };
-/**lib */
-/**utils */
-/**service */
-/**hook */
-
 
 module.exports = { crypto, electron, https, console };
-//http请求框架
 class FetchData {
     constructor(baseUrl) {
       this.baseUrl = baseUrl;
@@ -234,20 +233,44 @@ class FetchData {
     );
   }
 };
-
-var SubMsg = ""
-// AES解密函数
-//
+// AES加密解密函数
 function decryptData(encryptedData, key) {
-    const decipher = crypto.createDecipheriv(
-      "aes-128-cbc",
-      Buffer.from(key, "utf8"),
-      Buffer.from(key, "utf8")
-    );
-    let decrypted = decipher.update(encryptedData, "base64", "utf8");
-    decrypted += decipher.final("utf8");
-    return decrypted;
+  const decipher = crypto.createDecipheriv(
+    "aes-128-cbc",
+    Buffer.from(key, "utf8"),
+    Buffer.from(key, "utf8")
+  );
+  let decrypted = decipher.update(encryptedData, "base64", "utf8");
+  decrypted += decipher.final("utf8");
+  return decrypted;
+}
+
+function encryptData(data, key) {
+  const cipher = crypto.createCipheriv(
+    "aes-128-cbc",
+    Buffer.from(key, "utf8"),
+    Buffer.from(key, "utf8")
+  );
+  let encrypted = cipher.update(data, "utf8", "base64");
+  encrypted += cipher.final("base64");
+  return encrypted;
+}
+
+async function readDataFromFile(path) {
+  try {
+    return fs.promises.readFile(path, "utf8");
+  } catch (err) {
+    console.error("Error reading data from file:", err);
+    throw err;
   }
+}
+async function saveDataToFile(path, data) {
+  try {
+    await fs.promises.writeFile(path, data, "utf8");
+  } catch (err) {
+    return err;
+  }
+}
 /*-------------------------------------------------*/
 // windows自动更新
 function updateXmind() {
@@ -373,112 +396,28 @@ https.request = function (urlOrOptions, optionsOrCallback, callback) {
 };
 
 
-//SSL证书,msg验证私钥
-const privateKey = `-----BEGIN PRIVATE KEY-----
-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAMQt6XxUF/JFCjBz
-1vUt+LgsyMHuLTD1y9YxYlB6wtysSggrBW+Cni1fjND3sGaegLmUYOsEs8L8SBxe
-ObPZW7/3gVDRVouMCGcl7KKdpbnA1msqbf3V5vp+Odfv9yM57z+lvweSWY9+yyGB
-OnD88TWAnptyDtTJsy3I+falO4KtAgMBAAECgYAaL7a27dK0eBrAFPZgi95jVzcF
-C/HkUyr+UGE7NOfF5QmMxZFYLStICzUUv7tAN3AfVXsKY/pK0Lofb0RsiVsBrODO
-jP+lPu7tnPTLjcDEpia0ZWtC18gPsEaJnM8OJncsp48G0KVhAQszvhBRtWYhbpEb
-88ysRNUcCBcav0VAgQJBAPC5/eYTtV/wq4sisIWbBkUxFsd5mBQ590tL0rDQWOsL
-QRuaOp7y5pNwjlwCBgOonYJu4J02Mm10QowQnXjtjhUCQQDQoFx29fuN8iRfXw8q
-hvGNzu1B1opsQewhEnyLkbE2vQpmN5O4ZkKovkhtUxz28nmnuaoQ4JeMFMDyI3EZ
-k2A5AkEA27/NqSRApC4dSswF/FECLlObicjULVKlDtVOph3rrdT+QGZQMR1noxxS
-uGcYemqILrNs09bPvd8tiJL6TZP96QJBAIIp2ybZmCZa0jiyvWqiIOmCFmNCcMDU
-bHfB6fTGZJOrZGab/E1LeAGCHvweo+6rIB32Z9X52nOqqysn07PKUHkCQGqVcVRm
-O+e+CXaDO8Jl3RIVkEnv+GPNBNB/9HdQTD72XyRNd8oyZboVi8nA7wEzC3MPKosO
-1dO8k4gsMqjRGXE=
------END PRIVATE KEY-----`;
-const sslprivateKey = `-----BEGIN PRIVATE KEY-----
-MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAKf9z6kO5CZILS89
-ONX30jntb5eOJRalY4YtJLYpvbQpLMNnrsH7gNtxx9n6nqK6OorDmDKxyT5BeK5q
-8Z9Li5vrkgYk6cvyLtuL4ANp9213TCa1XL0pIneVPCcF8luPg5UqVDNMi8RS1eNf
-LC08eJNcawiwZQPYBx2U6ynWSR9HAgMBAAECgYA2F+15Q5lFlnIuRul5RK6GBqWr
-SJM6wpDUkM7EdZZnX+bRGR7VydWJVA8FasUQIyVcr3Tfxg3GJTDmAPvCzoGqctb5
-ztrOBOqmCUqOitYUU/xX3lAEWVFhBxR1cYcA6cBl/9v66cQgrBKzoa1Oftc/YhfG
-gxGHFhv9fwR/lil8YQJBANCaf1f8OkMti3adGGMFhxN4up+DXBq+BgwOlwWaQf29
-Re0qd9+OChKPTORNEsGBYkuDtN3mzZoMAqhJElEoEjcCQQDOKRkXCnRXl+UsaYhy
-L/XFb4marC7nF18H0ckKluJsy6/DEKLKcpqr9TeAgELpPUHpbXCvCJ/b2jwpwt/k
-ORNxAkEAn8rZZXKmxrLqtA+ekKu5TucaPfqH4UxSoYXDld0WU+Ja4FO5w5uwh4sR
-4YhQp74Op73aHGkicbBlkLd4uoYxfQJBAIa5fNf90QHdFbrsTGqyxN39geM+WnhS
-YZvukH8HE3kdswK6wGekdUeivF6RcyiRC53MEzOPY0h9WYvA+ide1UECQCKkZmmn
-hlGUiTJcf9YSC6zmcocwy7BMbZO+cEALVhI0kVIUphXOIrDLBT3/yEt9vZMBSOPd
-2RGI1IqfhYRwA/E=
------END PRIVATE KEY-----`;
-const sslcertificate = `-----BEGIN CERTIFICATE-----
-MIICMzCCAZygAwIBAgIUFzjrpBExRtwS7n7lyvQKknabW6gwDQYJKoZIhvcNAQEF
-BQAwKzENMAsGA1UEAwwEbnVsbDENMAsGA1UECgwEbnVsbDELMAkGA1UEBhMCRlIw
-IBcNMjQwNTI1MDE0MTAwWhgPMjEwMDEyMzExNTU1MDBaMF0xCzAJBgNVBAYTAkZS
-MQ0wCwYDVQQIDARudWxsMQ0wCwYDVQQHDARudWxsMQ0wCwYDVQQKDARudWxsMQ0w
-CwYDVQQLDARudWxsMRIwEAYDVQQDDAkxMjcuMC4wLjEwgZ8wDQYJKoZIhvcNAQEB
-BQADgY0AMIGJAoGBAKf9z6kO5CZILS89ONX30jntb5eOJRalY4YtJLYpvbQpLMNn
-rsH7gNtxx9n6nqK6OorDmDKxyT5BeK5q8Z9Li5vrkgYk6cvyLtuL4ANp9213TCa1
-XL0pIneVPCcF8luPg5UqVDNMi8RS1eNfLC08eJNcawiwZQPYBx2U6ynWSR9HAgMB
-AAGjIDAeMAsGA1UdEQQEMAKCADAPBgNVHRMBAf8EBTADAQH/MA0GCSqGSIb3DQEB
-BQUAA4GBAAM5zHwbTjYlCkkv8LblibwKgK/uUzZtVex9SjSmR1qbUNSxypRZ9prL
-ixFrbJ0EB5j36/1vxLniNQvboKQ2DsGKe/1I9Y2eUHu9K5I4q7CSdz58PmwqQ9N/
-SS+elu5/ZqpfOncQVYxQ0SLSZbwqYnRGQPQLFh03TE/fbwTSf8Rk
------END CERTIFICATE-----`;
-
-
-//token文件相关----------begin
-const USER_HOME = process.env.HOME || process.env.USERPROFILE;
-const filePath = _path.join(USER_HOME, "user.log");
-const isExist = fs.existsSync(filePath);
-// 从二进制文件中读取日期
-function readDateFromFile(filePath) {
-  return new Promise((resolve, reject) => {
-    fs.readFile(filePath, (err, data) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      const buffer = Buffer.from(data);
-      resolve(buffer);
-    });
-  });
-}
-// 写入日期和code到二进制文件，其中code占前27位，日期占8位
-function writeDateToFile(filePath, token, timestamp) {
-  const buffer = Buffer.alloc(35);
-  buffer.write(token, 0, 27);
-  buffer.writeDoubleLE(timestamp, 27);
-  fs.writeFile(filePath, buffer, (err) => {
-    if (err) {
-      log.error("writeDateToFileError:", err);
-      return;
-    }
-  });
-}
-//默认订阅token和时间
-const runtimeListenData = {
-  token: "",
-  timestamp: new Date().getTime()
+// 输入激活码后开启离线订阅
+const xmindOfflineToken = {
+  raw_data: `VxDmQYPKsNBw1XIIP7Ak7J0pavWyOYljC63kS3oT7K4onXR60Xv4R0Wf9LvVADoP/7xhoEeQhbKJLiZBnZAPg7eljLDKI/i/BngYcroMDUYTVlMVI8RaozLHFOcQw3MQ+iD6xAX0qMKaZFQNFAoHZmJDaN6JBSxsvpwQ1HcK6f0=`
 };
-//输入礼品卡获得的token和时间
-const upListenData = {
-  token: "",
-  timestamp: new Date().getTime()
-};
+
 //初始化函数
-async function InitRuntimeListenData() {
+async function initXmindOfflineToken() {
+  // 本地订阅文件相关
+  const USER_HOME = process.env.HOME || process.env.USERPROFILE;
+  const xmindOfflineTokenFilePath = _path.join(USER_HOME, "xmindOfflineToken");
+  const isExist = fs.existsSync(xmindOfflineTokenFilePath);
   if (!isExist) {
-    log.error("file is not exist!");
+    log.error("xmindOfflineToken is not exist!");
     return;
   }
   try {
-    const buffer = await readDateFromFile(filePath);
-    let token = buffer.toString("utf8", 0, 27);
-    let timestamp = buffer.readDoubleLE(27);
-    log.info("init token:", token);
-    log.info("init timestamp:", timestamp);
-    runtimeListenData.token = token;
-    runtimeListenData.timestamp = timestamp;
+    const data = readDateFromFile();
   } catch (error) {
     log.error("init error:", error);
   }
 }
+
 //更新订阅token和时间
 function updateListenDate() {
   try {
@@ -495,7 +434,7 @@ function updateListenDate() {
 }
 
 //初始化订阅文件
-InitRuntimeListenData();
+initXmindOfflineToken();
 
 // 创建框架实例
 const appServer = new FuckerServer();
@@ -509,11 +448,11 @@ appServer.get("/_res/session", (req, res) => {
   return {
     uid: "_xmind_1234567890",
     group_name: "",
-    phone: "101010",
+    phone: "1234567890123",
     group_logo: "",
     user: "_xmind_1234567890",
     cloud_site: "cn",
-    expireDate: runtimeListenData.timestamp,
+    expireDate: 1700000000000,
     emailhash: "1234567890",
     userid: 1234567890,
     if_cxm: 0,
@@ -528,13 +467,11 @@ appServer.get("/_res/session", (req, res) => {
 appServer.get("/_res/user_sub_status", (req, res) => {
   return { _code: 200 };
 });
-
+//1700000000000
 appServer.post("/_res/devices", (req, res) => {
   log.error("devices:", DeviceCode);
-  let status =
-    runtimeListenData.timestamp >= new Date().getTime() ? "sub" : "trial";
   // 要加密的字符串
-  const submsg = `{"status": "sub", "expireTime": ${runtimeListenData.timestamp}, "ss": "", "deviceId": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`;
+  const submsg = `{"status": "", "expireTime": 0, "ss": "", "deviceId": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`;
   log.info("Now Sub MSG:", submsg);
   // 使用私钥字符串对数据进行加密
   const encryptedData = crypto.privateEncrypt(
@@ -548,8 +485,8 @@ appServer.post("/_res/devices", (req, res) => {
   return {
     raw_data: encryptedData.toString("base64"),
     license: {
-      status: status,
-      expireTime: runtimeListenData.timestamp
+      status: "",
+      expireTime: 0
     },
     _code: 200
   };
