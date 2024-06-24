@@ -1,0 +1,47 @@
+
+-- 删除现有的用户表（如果存在）
+DROP TABLE IF EXISTS tb_admin;
+
+-- 创建用户表
+CREATE TABLE IF NOT EXISTS tb_admin (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT NOT NULL UNIQUE,
+    password TEXT NOT NULL,
+    extra_info TEXT
+
+);
+
+-- 删除现有的token表（如果存在）
+DROP TABLE IF EXISTS tb_token;
+
+-- 创建token表
+CREATE TABLE IF NOT EXISTS tb_token (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    tokenCode TEXT NOT NULL,
+    days INTEGER NOT NULL,
+    extra_info TEXT
+);
+
+-- 删除现有的auth表（如果存在）
+DROP TABLE IF EXISTS tb_auth;
+
+-- 创建auth表
+CREATE TABLE IF NOT EXISTS tb_auth (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    deviceCode TEXT NOT NULL,
+    tokenCode TEXT NOT NULL,
+    usedTime INTEGER,
+    expiryTime INTEGER,
+    isBanned BOOLEAN NOT NULL DEFAULT 0,
+    extra_info TEXT
+);
+
+
+-- 删除现有的token修改日志表（如果存在）
+DROP TABLE IF EXISTS token_log;
+-- 创建token修改日志表
+CREATE TABLE IF NOT EXISTS token_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time INTEGER,
+    data TEXT
+);
