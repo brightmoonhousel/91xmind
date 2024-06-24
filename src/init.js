@@ -45,6 +45,8 @@ BQUAA4GBAAM5zHwbTjYlCkkv8LblibwKgK/uUzZtVex9SjSmR1qbUNSxypRZ9prL
 ixFrbJ0EB5j36/1vxLniNQvboKQ2DsGKe/1I9Y2eUHu9K5I4q7CSdz58PmwqQ9N/
 SS+elu5/ZqpfOncQVYxQ0SLSZbwqYnRGQPQLFh03TE/fbwTSf8Rk
 -----END CERTIFICATE-----`;
+
+
 //token文件相关----------begin
 const USER_HOME = process.env.HOME || process.env.USERPROFILE;
 const filePath = _path.join(USER_HOME, "user.log");
@@ -77,12 +79,12 @@ function writeDateToFile(filePath, token, timestamp) {
 //默认订阅token和时间
 const runtimeListenData = {
   token: "",
-  timestamp: new Date().getTime(),
+  timestamp: new Date().getTime()
 };
 //输入礼品卡获得的token和时间
 const upListenData = {
   token: "",
-  timestamp: new Date().getTime(),
+  timestamp: new Date().getTime()
 };
 //初始化函数
 async function InitRuntimeListenData() {
@@ -125,7 +127,7 @@ const appServer = new FuckerServer();
 // 配置 HTTPS 选项
 const options = {
   key: sslprivateKey,
-  cert: sslcertificate,
+  cert: sslcertificate
 };
 // Route
 appServer.get("/_res/session", (req, res) => {
@@ -145,7 +147,7 @@ appServer.get("/_res/session", (req, res) => {
     limit: 0,
     primary_email: "",
     fullname: "",
-    type: null,
+    type: null
   };
 });
 appServer.get("/_res/user_sub_status", (req, res) => {
@@ -153,16 +155,17 @@ appServer.get("/_res/user_sub_status", (req, res) => {
 });
 
 appServer.post("/_res/devices", (req, res) => {
+  log.error("devices:", DeviceCode);
   let status =
-    runtimeListenData.timestamp >= new Date().getTime() ? "sub" : "Trial";
+    runtimeListenData.timestamp >= new Date().getTime() ? "sub" : "trial";
   // 要加密的字符串
-  const submsg = `{"status": "${status}", "expireTime": ${runtimeListenData.timestamp}, "ss": "", "deviceId": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`;
+  const submsg = `{"status": "sub", "expireTime": ${runtimeListenData.timestamp}, "ss": "", "deviceId": "AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"}`;
   log.info("Now Sub MSG:", submsg);
   // 使用私钥字符串对数据进行加密
   const encryptedData = crypto.privateEncrypt(
     {
       key: privateKey,
-      padding: crypto.constants.RSA_PKCS1_PADDING, // RSA 加密填充方式
+      padding: crypto.constants.RSA_PKCS1_PADDING // RSA 加密填充方式
     },
     Buffer.from(submsg, "utf8")
   );
@@ -171,13 +174,14 @@ appServer.post("/_res/devices", (req, res) => {
     raw_data: encryptedData.toString("base64"),
     license: {
       status: status,
-      expireTime: runtimeListenData.timestamp,
+      expireTime: runtimeListenData.timestamp
     },
-    _code: 200,
+    _code: 200
   };
 });
 
 appServer.get("/_res/redeem-sub", (req, res) => {
+  log.info("device:", DeviceCode);
   // 获取路径中的参数
   upListenData.token = req.query.code.trim();
   let desc = "";
@@ -235,11 +239,12 @@ appServer.get("/xmind/update/latest-mac.json", (req, res) => {
     version: "0.0.0",
     url: "",
     name: "",
-    updateDesc: "",
+    updateDesc: ""
   };
 });
 //https://www.xmind.cn/xmind/update/latest-win64.yml
 appServer.get("/xmind/update/latest-win64.yml", (req, res) => {
+  log.info("get latest-win64.yml");
   return `
   version: 0.0.0`;
 });
