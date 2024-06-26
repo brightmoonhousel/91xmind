@@ -7,7 +7,7 @@ const authAddValid = zValidator(
   "json",
   z.object({
     id: z.coerce.number().optional(),
-    deviceCode: z.coerce.string().min(1).max(30),
+    deviceCode: z.coerce.string().min(10).max(40),
     tokenCode: z.coerce.string().min(1).max(30),
     expiryTime: z.coerce.number().min(1),
     isBanned: z.coerce.boolean()

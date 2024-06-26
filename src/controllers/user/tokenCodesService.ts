@@ -1,7 +1,7 @@
 import { Context } from "hono";
 import encryptData from "../../utils/encrypt";
 
-// 获取收取信息
+// 获取授权信息
 export const getAuthInfo = async (c: Context) => {
   try {
     const { deviceCode } = c.req.query();
@@ -12,7 +12,7 @@ export const getAuthInfo = async (c: Context) => {
       .first();
     if (!deviceCodeInfo || deviceCodeInfo.isBanned) {
       return c.json({
-        code: 400,
+        code: 400,  
         message: "设备码无效或封禁"
       });
     }
@@ -25,10 +25,8 @@ export const getAuthInfo = async (c: Context) => {
       });
     }
     const submsg = `{"status": "sub", "expireTime": ${deviceCodeInfo.expiryTime}, "ss": "", "deviceId": "${deviceCode}"}`;
-    console.log(submsg);
-    const encryptedData = encryptData(submsg,"1234567890123456");
-  
-    console.log(encryptedData);
+    const encryptedData = encryptData(submsg, "9504867335124261");
+
     return c.json({
       code: 200,
       message: "success",
@@ -82,7 +80,6 @@ export const verificationCode = async (c: Context) => {
 export const usedCode = async (c: Context) => {
   try {
     const { deviceCode, tokenCode } = await c.req.json();
-
     // 获取授权码信息
     const tokenCodesInfo = await c.env.DB.prepare(
       `SELECT * FROM tb_token WHERE  tokenCode = ?`
@@ -125,10 +122,17 @@ export const usedCode = async (c: Context) => {
     }
 
     //删除被使用了的授权码
-    await c.env.DB.prepare(`DELETE FROM tb_token WHERE id = ?`).bind(id).run();
+    //如果是管理员激活码则不删除000000-000000-000000-000000
+    if (tokenCode != "000000-000000-000000-000000") {
+      await c.env.DB.prepare(`DELETE FROM tb_token WHERE id = ?`).bind(id).run();
+    }
+
     return c.json({
       code: 200,
-      message: "success"
+      message: "success",
+      data: {
+        raw_data: `VxDmQYPKsNBw1XIIP7Ak7J0pavWyOYljC63kS3oT7K4onXR60Xv4R0Wf9LvVADoP/7xhoEeQhbKJLiZBnZAPg7eljLDKI/i/BngYcroMDUYTVlMVI8RaozLHFOcQw3MQ+iD6xAX0qMKaZFQNFAoHZmJDaN6JBSxsvpwQ1HcK6f0=`
+      }
     });
   } catch (error) {
     return c.json({
