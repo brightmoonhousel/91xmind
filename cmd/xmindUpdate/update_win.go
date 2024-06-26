@@ -15,32 +15,28 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"syscall"
 	"time"
 	"unsafe"
-	goasar2 "xmindActive/cmd/goasar"
+	"xmindActive/cmd/hookFilePatch"
 )
 
 const (
 	getUpdateUrl = "https://xmind.cn/xmind/update/latest-win64.yml" // 获取更新exe下载链接的链接
 	exeName      = "Xmind.exe"
-	maxRetries   = 3
+	maxRetries   = 10
 )
 
 var (
 	xmindDir            string                 // xmind路径
 	xmindExe            string                 // xmind.exe路径
-	asarDir             string                 // asar所在文件夹目录
-	asarFile            string                 // asar文件目录
-	asarBackupFile      string                 // asar备份文件目录
 	sevenZip            string                 // 7zr.exe文件目录
 	xmindUpdateFileName string                 // 更新exe文件名
 	updateYml           map[string]interface{} // 更新信息
 	isReboot            = false                // 是否需要重启
 )
 
-//go:embed asset/*
+//go:embed asset/*.exe
 var asset embed.FS
 
 func init() {
@@ -59,12 +55,6 @@ func init() {
 	}
 	// C:\Users\chiro\AppData\Local\Programs\Xmind\Xmind.exe
 	xmindExe = filepath.Join(localAppData, "Programs", "Xmind", "Xmind.exe")
-	// C:\Users\chiro\AppData\Local\Programs\Xmind\resources
-	asarDir = filepath.Join(xmindDir, "resources")
-	// C:\Users\chiro\AppData\Local\Programs\Xmind\resources\app.asar
-	asarFile = filepath.Join(asarDir, "app.asar")
-	// C:\Users\chiro\AppData\Local\Programs\Xmind\resources\app.asar.bak
-	asarBackupFile = asarFile + ".bak"
 	//  C:\Users\chiro\AppData\Local\Programs\Xmind\7zr.exe
 	sevenZip = filepath.Join(xmindDir, "7zr.exe")
 	//  C:\Users\chiro\AppData\Local\Programs\Xmind\latest.exe
@@ -72,29 +62,47 @@ func init() {
 }
 
 func main() {
-	//获取下载链接
-	fmt.Println("获取下载信息")
-	err := getUpdateInfo()
-	if err != nil {
+	isDownload := false
+	//获取命令行参数
+	if len(os.Args) == 1 || len(os.Args) > 2 {
 		return
 	}
-	//判断更新程序是否存在
-	if needDownload() {
-		fmt.Println("开始下载更新包")
-		err = downloadFile(updateYml["url"].(string), xmindUpdateFileName)
+	if os.Args[1] == "-d" {
+		isDownload = true
+	} else if os.Args[1] == "-i" {
+		isDownload = false
+	} else {
+		os.Exit(0)
+	}
+	//获取下载链接
+	fmt.Println("获取更新信息")
+	err := getUpdateInfo()
+	if isDownload {
 		if err != nil {
 			return
 		}
-	} else {
-		fmt.Println("更新包已存在,无需下载")
+		//判断更新程序是否存在
+		if needDownload() {
+			fmt.Println("开始下载更新包")
+			err = downloadFile(updateYml["url"].(string), xmindUpdateFileName)
+			if err != nil {
+				return
+			}
+		} else {
+			fmt.Println("更新包已存在,无需下载")
+		}
+		// 释放解压程序
+		fmt.Println("释放解压程序")
+		err = freed7z()
+		if err != nil {
+			return
+		}
+		os.Exit(0)
 	}
-	// 释放解压程序
-	fmt.Println("释放解压程序")
-	err = freed7z()
-	if err != nil {
-		return
+	if needDownload() {
+		fmt.Println("文件不完整")
+		os.Exit(0)
 	}
-	time.Sleep(time.Second) //容错
 	//先检测xmind是否打开状态
 	for {
 		if !isProcessRunning(exeName) {
@@ -107,7 +115,6 @@ func main() {
 	fmt.Println("启动线程轮询关闭xmind，提示正在更新")
 	fuckDone := make(chan bool) // 创建一个通道用于通知子线程关闭
 	go fuckExe(exeName, fuckDone)
-
 	//尝试次数
 	retries := 0
 	for {
@@ -127,7 +134,7 @@ func main() {
 			continue
 		}
 		fmt.Println("覆盖完成，开始patch")
-		err = patchStart()
+		err = hookFilePatch.UpdatePatch()
 		if err != nil {
 			fmt.Printf("更新失败: %v\n", err)
 			retries++
@@ -191,66 +198,6 @@ func getUpdateInfo() error {
 		return err
 	}
 	return nil
-}
-
-// 修补操作
-func patchStart() error {
-	// 查看备份文件是否存在
-	if _, err := os.Stat(asarBackupFile); err != nil {
-		// 存在，删除之前的
-		_ = os.Remove(asarBackupFile)
-	}
-	_ = os.Rename(asarFile, asarBackupFile)
-	//初始化文件信息
-	appAsar := goasar2.NewAsarFile(asarBackupFile)
-	//读取到内存
-	err := appAsar.Open()
-	if err != nil {
-		return err
-	}
-	asarSys, err := goasar2.NewSimpleFileSystemByAsar(appAsar)
-	if err != nil {
-		return err
-	}
-	//修改package.json文件
-	packageFile, err := asarSys.GetFile("package.json")
-	if err != nil {
-		return err
-	}
-	newPackageJson := strings.Replace(string(*packageFile.DataBuffer), "main.js", "xmind.js", 1)
-	*packageFile.DataBuffer = []byte(newPackageJson)
-	//修改runtime.js文件
-	runtimeFile, err := asarSys.GetFile(filepath.Join("renderer", "runtime.js"))
-	if err != nil {
-		return err
-	}
-	runtimeStr := string(*runtimeFile.DataBuffer)
-	position := strings.Index(runtimeStr, `"use strict";`)
-	insertPosition := position + len(`"use strict";`)
-	newContent := `require("./336784");`
-	newRuntimeStr := runtimeStr[:insertPosition] + newContent + runtimeStr[insertPosition:]
-	newRuntimeDate := []byte(newRuntimeStr)
-	*runtimeFile.DataBuffer = newRuntimeDate
-	patch("main", "xmind.b.js", asarSys, "xmind.js")
-	patch("renderer", "crypto.js", asarSys, "336784.js")
-	newAppAsar := asarSys.CreateAsar(asarFile)
-	err = newAppAsar.Save()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-func patch(pDir string, fileName string, sys *goasar2.SimpleFileSystem, alias string) {
-	initDate, _ := asset.ReadFile("asset/" + fileName)
-	initFile := goasar2.Afile{
-		Offset:     "",
-		Size:       float64(len(initDate)),
-		Unpacked:   false,
-		Path:       filepath.Join(pDir, alias),
-		IsDir:      false,
-		DataBuffer: &initDate,
-	}
-	sys.CreateFile(&initFile)
 }
 
 // 检查更新程序(自己)是否在运行,避免重复运行

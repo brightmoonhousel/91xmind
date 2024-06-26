@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"xmindActive/cmd/hookFilePatch"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -120,7 +121,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	switch msg.(type) {
 	case launchMsg:
-		go rebootApp(xmindExe)
+		go hookFilePatch.RebootApp(hookFilePatch.XmindExe)
 	}
 	// 将消息和模型移交给相应的更新函数
 	// 基于当前状态的适当视图。
@@ -171,7 +172,7 @@ func updateChoices(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 					} else {
 						p.Send(changeState{})
 					}
-					err = start()
+					err = hookFilePatch.StartPatch()
 					if err != nil {
 						time.Sleep(time.Second * 1)
 						p.Send(failedMsg{err.Error()})
@@ -190,7 +191,7 @@ func updateChoices(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 					} else {
 						p.Send(changeState{})
 					}
-					err = restore()
+					err = hookFilePatch.Restore()
 					if err != nil {
 						time.Sleep(time.Second * 1)
 						p.Send(failedMsg{err.Error()})

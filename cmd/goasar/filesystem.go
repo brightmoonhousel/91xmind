@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -99,7 +100,6 @@ func (fs *SimpleFileSystem) CreateAsar(path string) *Asar {
 	newAsarFile.DataBuffer = &dateBytes
 	return newAsarFile
 }
-
 func (fs *SimpleFileSystem) creatSysByAsar(asar *Asar) error {
 
 	type fileStackItem struct {
@@ -170,6 +170,32 @@ func (fs *SimpleFileSystem) CountSize() int {
 	}
 	return size
 }
+
+// Extract 解压
+func (fs *SimpleFileSystem) Extract(dirPath string) error {
+	// 创建文件夹
+	err := os.MkdirAll(dirPath, os.ModePerm)
+	if err != nil {
+		return err
+	}
+	// 遍历文件系统中的文件信息
+	for _, f := range fs.directories {
+		if f.Unpacked {
+			continue
+		}
+		// 构建文件完整路径
+		fPath := filepath.Join(dirPath, f.Path)
+		// 创建文件并写入数据
+		dir := filepath.Dir(fPath)
+		err := os.MkdirAll(dir, os.ModePerm)
+		err = os.WriteFile(fPath, *f.DataBuffer, os.ModePerm)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	return nil
+}
+
 func files2JsonMap(files map[string]*Afile) map[string]interface{} {
 
 	// 创建一个空的结果映射，用于存储转换后的文件信息。
