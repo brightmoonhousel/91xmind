@@ -1,0 +1,22 @@
+{
+  "name": "hook",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dev.js",
+  "scripts": {
+    "build": "node ./build/build.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@fastify/http-proxy": "^9.5.0",
+    "axios": "^1.7.2",
+    "fastify": "^4.28.0",
+    "js-yaml": "^4.1.0",
+    "md5-file": "^5.0.0"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "javascript-obfuscator": "^4.1.1"
+  }
+}
