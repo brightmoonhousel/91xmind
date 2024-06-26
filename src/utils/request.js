@@ -1,50 +1,63 @@
 import axios from 'axios'
 import { useUserStore } from '../stores'
+import debounce from 'lodash/debounce'
 import router from '../router'
 
-// 1. 配置一个axios实例，比如基础地址、超时时间、头部
-// const baseURL = 'http://big-event-vue-api-t.itheima.net'
-const baseURL = ''
+// 使用 lodash 的 debounce 来防抖处理请求
+const debouncedRequest = debounce((config, resolve) => {
+  resolve(config)
+}, 300) // 300ms 防抖时间，可以根据需要调整
+
+const baseURL = import.meta.env.VITE_REQUEST_BASE_URL
 const instance = axios.create({
   baseURL,
   timeout: 10000
 })
 
-// 2. 添加请求拦截器
-instance.interceptors.request.use(
-  (config) => {
-    // 从store仓库中导入token
-    const userStore = useUserStore()
-    if (userStore.token) {
-      config.headers.Authorization = userStore.token
-    }
-    return config
-  },
-  // 处理请求错误
-  (err) => Promise.reject(err) // Promise.reject 接收一个参数创建一个promise对象，这个参数表示拒绝的原因，创建的 Promise 对象将立即变为拒绝状态（rejected）。
-)
+// 定义排除防抖的 URL
+const excludedUrls = [
+  '/api/v1/userinfo'
+]
 
+// 请求拦截器
+instance.interceptors.request.use(
+  (config) =>
+    new Promise((resolve) => {
+      console.log('请求拦截器：', config.url)
+      const userStore = useUserStore()
+      if (userStore.token) {
+        config.headers.Authorization = userStore.token
+      }
+      // 检查是否需要排除该 URL
+      if (excludedUrls.includes(config.url)) {
+        resolve(config) // 如果是排除的 URL，则直接 resolve(config)，不进行防抖处理
+      } else {
+        debouncedRequest(config, resolve) // 否则进行防抖处理
+      }
+    }),
+  (err) => Promise.reject(err)
+)
 // 3. 添加响应拦截器
 instance.interceptors.response.use(
   // 处理响应成功
   (res) => {
     // 业务成功
     if (res.data.code === 200) {
-      console.log('成功通过响应拦截器！')
       return res.data
     }
-    // 业务失败
-    ElMessage.error(res.data.message || '服务异常！')
+    ElMessage.error(res.data.message || res.data.data.message || '服务异常！')
     return Promise.reject(res.data) // Promise.reject 是 JavaScript 中的一个方法，它用于创建一个被拒绝（rejected）的 Promise 对象。这在处理异步操作时非常有用，特别是在需要表示一个操作失败或出错时。
   },
   // 处理响应失败
   (err) => {
     // 处理401错误 —— 权限不足 or token过期 => 拦截到登录
     if (err.response.status === 401) {
+      ElMessage.error('登录过期，请重新登录！')
       router.push('/login')
+      return Promise.reject(err)
     }
     // 处理默认情况的错误
-    ElMessage.error(err.response.message || '服务异常！')
+    ElMessage.error(err.response.message || err.response.data.message || '服务异常！')
     return Promise.reject(err)
   }
 )

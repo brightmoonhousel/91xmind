@@ -8,7 +8,7 @@ export const router = createRouter({
     { path: '/login', component: () => import('../views/login/LoginPage.vue') }, // 异步组件写法
     {
       path: '/',
-      component: () => import('../views/layout/LayoutContainer.vue'),
+      component: () => import('../layout/LayoutContainer.vue'),
       redirect: '/auth/manage',
       children: [
         {

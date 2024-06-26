@@ -2,7 +2,7 @@
   {
     "id": "1",
     "deviceCode": "mkolbfjhbiusndfgv1",
-    "authCode": "asdfdfsdfsd1",
+    "tokenCode": "asdfdfsdfsd1",
     "usedTime": "2024-01-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -10,7 +10,7 @@
   {
     "id": "2",
     "deviceCode": "mkolbfjhbiusndfgv2",
-    "authCode": "asdfdfsdfsd2",
+    "tokenCode": "asdfdfsdfsd2",
     "usedTime": "2024-02-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -18,7 +18,7 @@
   {
     "id": "3",
     "deviceCode": "mkolbfjhbiusndfgv2",
-    "authCode": "asdfdfsdfsd2",
+    "tokenCode": "asdfdfsdfsd2",
     "usedTime": "2024-02-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -26,7 +26,7 @@
   {
     "id": "4",
     "deviceCode": "mkolbfjhbiusndfgv2",
-    "authCode": "asdfdfsdfsd2",
+    "tokenCode": "asdfdfsdfsd2",
     "usedTime": "2024-02-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -34,7 +34,7 @@
   {
     "id": "5",
     "deviceCode": "mkolbfjhbiusndfgv2",
-    "authCode": "asdfdfsdfsd2",
+    "tokenCode": "asdfdfsdfsd2",
     "usedTime": "2024-02-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -42,7 +42,7 @@
   {
     "id": "6",
     "deviceCode": "mkolbfjhbiusndfgv2",
-    "authCode": "asdfdfsdfsd2",
+    "tokenCode": "asdfdfsdfsd2",
     "usedTime": "2024-02-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -50,7 +50,7 @@
   {
     "id": "7",
     "deviceCode": "mkolbfjhbiusndfgv2",
-    "authCode": "asdfdfsdfsd2",
+    "tokenCode": "asdfdfsdfsd2",
     "usedTime": "2024-02-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -58,7 +58,7 @@
   {
     "id": "8",
     "deviceCode": "mkolbfjhbiusndfgv2",
-    "authCode": "asdfdfsdfsd2",
+    "tokenCode": "asdfdfsdfsd2",
     "usedTime": "2024-02-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -66,7 +66,7 @@
   {
     "id": "9",
     "deviceCode": "mkolbfjhbiusndfgv2",
-    "authCode": "asdfdfsdfsd2",
+    "tokenCode": "asdfdfsdfsd2",
     "usedTime": "2024-02-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -74,7 +74,7 @@
   {
     "id": "10",
     "deviceCode": "mkolbfjhbiusndfgv2",
-    "authCode": "asdfdfsdfsd2",
+    "tokenCode": "asdfdfsdfsd2",
     "usedTime": "2024-02-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -82,7 +82,7 @@
   {
     "id": "11",
     "deviceCode": "mkolbfjhbiusndfgv3",
-    "authCode": "asdfdfsdfsd3",
+    "tokenCode": "asdfdfsdfsd3",
     "usedTime": "2024-03-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"
@@ -90,7 +90,7 @@
   {
     "id": "12",
     "deviceCode": "mkolbfjhbiusndfgv20",
-    "authCode": "asdfdfsdfsd20",
+    "tokenCode": "asdfdfsdfsd20",
     "usedTime": "2024-12-01T12:00:00Z",
     "expiryTime": "2024-12-31T23:59:59Z",
     "isBanned": "false"

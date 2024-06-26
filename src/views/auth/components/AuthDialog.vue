@@ -1,30 +1,39 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { authAddService, authUpdateService } from '@/api/auth.js'
+import { dayjs } from 'element-plus'
+const emit = defineEmits(['success'])
 
-const formModel = ref({})
-
-//弹窗相关
-const dialogVisible = ref(false)
-const open = (row) => {
+const openAuthDialog = (row) => {
   dialogVisible.value = true
   formModel.value = { ...row }
 }
-//表单相关
-const ruleFormRef = ref()
 
+
+const dialogVisible = ref(false)
+// 表单实例
+const ruleFormRef = ref()
+// 表单model
+const formModel = ref({
+  id: 0,
+  deviceCode: '',
+  tokenCode: '',
+  expiryTime: 0,
+  isBanned: 0
+})
+// 表单验证规则
 const rules = {
   deviceCode: [
     { required: true, message: '设备码不能为空', trigger: 'blur' },
-    { min: 3, max: 30, message: 'Length should be 3 to 30', trigger: 'blur' }
+    { min: 10, max: 40, message: 'Length should be 10 to 40', trigger: 'blur' }
   ],
-  authCode: [
+  tokenCode: [
     { required: true, message: '授权码不能为空', trigger: 'blur' },
     { min: 3, max: 30, message: 'Length should be 3 to 30', trigger: 'blur' }
   ],
   expiryTime: [{ required: true, message: '到期时间不能为空', trigger: 'blur' }]
 }
-
+// 重置表单
 const onResetFrom = () => {
   if (!ruleFormRef.value) {
     return
@@ -33,34 +42,28 @@ const onResetFrom = () => {
   ruleFormRef.value.clearValidate()
 }
 
-//add
-const onAddCategory = async () => {
+// id是否存在来判断 是更新还是添加窗口
+const isUpdate = computed(() => formModel.value.id > 0)
+const onUpdateCategory = async (isUpdate) => {
   await ruleFormRef.value.validate()
-  const res = await authAddService(formModel.value)
-  ElMessage.success(res.message)
-  emit('success')
-  onResetFrom()
-}
-// update
-const onUpdateCategory = async () => {
-  await ruleFormRef.value.validate()
-  const res = await authUpdateService(formModel.value)
+  // 转为毫秒时间戳
+  formModel.value.expiryTime = dayjs(formModel.value.expiryTime).valueOf()
+  const service = isUpdate ? authUpdateService : authAddService
+  const res = await service(formModel.value)
   ElMessage.success(res.message)
   emit('success')
   onResetFrom()
 }
 
-const emit = defineEmits(['success'])
-// 暴露
 defineExpose({
-  open
+  openAuthDialog
 })
 </script>
 <template>
   <el-dialog
     @close="onResetFrom"
     v-model="dialogVisible"
-    :title="formModel.id ? '编辑授权' : '添加授权'"
+    :title="isUpdate ? '编辑授权' : '添加授权'"
     width="30%"
   >
     <el-form
@@ -73,8 +76,8 @@ defineExpose({
       <el-form-item label="设备码" prop="deviceCode">
         <el-input v-model="formModel.deviceCode" placeholder="请输入设备码"></el-input>
       </el-form-item>
-      <el-form-item label="授权码" prop="authCode">
-        <el-input v-model="formModel.authCode" placeholder="请输入授权码"></el-input>
+      <el-form-item label="授权码" prop="tokenCode">
+        <el-input v-model="formModel.tokenCode" placeholder="请输入授权码"></el-input>
       </el-form-item>
       <el-form-item label="有效期" prop="expiryTime">
         <el-date-picker
@@ -85,15 +88,13 @@ defineExpose({
         />
       </el-form-item>
       <el-form-item label="是否封禁" prop="isBanned">
-        <el-switch v-model="formModel.isBanned" />
+        <el-switch :active-value="1" :inactive-value="0" v-model="formModel.isBanned" />
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
         <el-button @click="onResetFrom">取消</el-button>
-        <el-button type="primary" @click="formModel.id ? onUpdateCategory() : onAddCategory()">
-          确认
-        </el-button>
+        <el-button type="primary" @click="onUpdateCategory(isUpdate)"> 确认 </el-button>
       </span>
     </template>
   </el-dialog>

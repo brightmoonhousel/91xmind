@@ -1,6 +1,6 @@
 export default [
   {
-    url: '/api/v1/login',
+    url: '/api/login',
     method: 'post',
     response: ({ body }) => {
       if (body.username == 'admin' && body.password == '123456') {

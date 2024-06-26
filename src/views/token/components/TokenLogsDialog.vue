@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue'
 import { logPageListService, logDeleteService } from '@/api/token.js'
+import { formatTime2 } from '@/utils/format.js'
 import useClipboard from 'vue-clipboard3'
 const { toClipboard } = useClipboard()
 const copy = async (msg) => {
@@ -49,7 +50,7 @@ const onDelete = async (row) => {
 const onPageChange = async () => {
   tableLoading.value = true
   const res = await logPageListService(page.value)
-  LogTableData.value = res.data.list
+  LogTableData.value = res.data.rows
   page.value.total = res.data.total
   setTimeout(() => {
     tableLoading.value = false
@@ -75,8 +76,8 @@ const tokenData = ref({})
 const onOpenTokenDialog = (row) => {
   logTokenDialogVisible.value = true
   tokenData.value = {
-    length: row.data.length,
-    data: row.data.join('\n')
+    length: row.data.match(/\n/g) ? row.data.match(/\n/g).length + 1 : 1,
+    data: row.data
   }
 }
 </script>
@@ -96,7 +97,11 @@ const onOpenTokenDialog = (row) => {
     </el-popconfirm>
     <el-table v-loading="tableLoading" :data="LogTableData" @selection-change="onSelection">
       <el-table-column type="selection" label="多选框" />
-      <el-table-column prop="time" label="提交时间"></el-table-column>
+      <el-table-column
+        prop="time"
+        label="提交时间"
+        :formatter="(row) => formatTime2(row.time)"
+      ></el-table-column>
       <el-table-column label="操作" fixed="right" width="200">
         <template #default="scope">
           <el-button type="primary" size="small" @click="onOpenTokenDialog(scope.row)" plain>
@@ -130,7 +135,7 @@ const onOpenTokenDialog = (row) => {
     <el-input
       readonly
       :value="tokenData.data"
-      :autosize="{ minRows: 2, maxRows: 20 }"
+      :autosize="{ minRows: 10, maxRows: 20 }"
       type="textarea"
       resize="none"
     />
@@ -143,6 +148,9 @@ const onOpenTokenDialog = (row) => {
 </template>
 <style scoped>
 .el-row {
+  margin-bottom: 20px;
+}
+.el-input {
   margin-bottom: 20px;
 }
 </style>

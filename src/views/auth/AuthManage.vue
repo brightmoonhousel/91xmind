@@ -4,59 +4,55 @@ import { Delete, Edit } from '@element-plus/icons-vue'
 import { formatTime } from '@/utils/format.js'
 import { authPageListService, authDeleteService, authQuaryListService } from '@/api/auth.js'
 import AuthDialog from './components/AuthDialog.vue'
-//表格数据
-const authCodeTableData = ref([])
-//查询数据
-const queryData = ref({
-  deviceCode: '',
-  authCode: ''
+//初始化
+onMounted( async () => {
+   await onPageChange() 
 })
-//表格加载
-const tableLoading = ref(true)
-//分页数据
-const page = ref({
-  total: 0,
-  pageSize: 10,
-  currentPage: 1
-})
+
 //子组件实例
 const subDialog = ref()
-
-//多选数据
-const selectedData = ref([])
+//表格数据
+const authCodeTableData = ref([])
+//表格加载动画
+const tableLoading = ref(true)
 
 //查询操作
+const queryData = ref({
+  deviceCode: '',
+  tokenCode: ''
+})
 const onQueryData = async () => {
-  if (!queryData.value.deviceCode && !queryData.value.authCode) {
+  if (!queryData.value.deviceCode && !queryData.value.tokenCode) {
     return
   }
-
-  const sendQueryData = (({ deviceCode, authCode }) => {
+  const sendQueryData = (({ deviceCode, tokenCode }) => {
     const result = {}
     if (deviceCode !== '') {
       result.deviceCode = deviceCode
     }
-    if (authCode !== '') {
-      result.authCode = authCode
+    if (tokenCode !== '') {
+      result.tokenCode = tokenCode
     }
     return result
   })(queryData.value)
-
   const res = await authQuaryListService(sendQueryData)
-  authCodeTableData.value = res.data
+  authCodeTableData.value = res.data.rows
 }
-//重置查询
+//重置查询数据
 const onResetData = () => {
   queryData.value = {
     deviceCode: '',
-    authCode: ''
+    tokenCode: ''
   }
   onPageChange()
 }
+
 //多选
+const selectedData = ref([])
 const onSelection = (e) => {
   selectedData.value = e
 }
+
 //批删
 const onMulDelete = async () => {
   if (selectedData.value.length === 0) {
@@ -75,39 +71,34 @@ const onDelete = async (row) => {
   ElMessage.success(res.message)
   onPageChange()
 }
-//编辑
+
+// 打开编辑弹窗
 const onOpenDialog = (row) => {
-  console.log(row)
-  subDialog.value.open(row)
+  subDialog.value.openAuthDialog(row)
 }
-//分页变化
+
+//分页
+const page = ref({
+  total: 0,
+  pageSize: 10,
+  currentPage: 1
+})
 const onPageChange = async () => {
   tableLoading.value = true
   const res = await authPageListService(page.value)
-  authCodeTableData.value = res.data.list
+  
+  authCodeTableData.value = res.data.rows
   page.value.total = res.data.total
   setTimeout(() => {
     tableLoading.value = false
   }, 300)
 }
-
-//初始化
-onMounted(async () => {
-  //初始化表格数据
-  tableLoading.value = true
-  const res = await authPageListService(page.value)
-  authCodeTableData.value = res.data.list
-  page.value.total = res.data.total
-  setTimeout(() => {
-    tableLoading.value = false
-  }, 300)
-})
 </script>
 
 <template>
   <page-container title="用户管理">
     <template #extra>
-      <el-button type="primary" @click="onOpenDialog" plain>
+      <el-button type="primary" @click="onOpenDialog({})" plain>
         <el-icon><Edit /></el-icon>添加授权
       </el-button>
       <el-popconfirm title="确认删除吗?" @confirm="onMulDelete">
@@ -127,7 +118,7 @@ onMounted(async () => {
       </el-col>
       <el-col :span="3">
         <div>
-          <el-input v-model="queryData.authCode" placeholder="请输入授权码"></el-input>
+          <el-input v-model="queryData.tokenCode" placeholder="请输入授权码"></el-input>
         </div>
       </el-col>
       <el-col :span="6">
@@ -146,7 +137,7 @@ onMounted(async () => {
       <el-table-column type="selection" label="多选框" />
       <el-table-column label="id" prop="id" width="80" />
       <el-table-column label="设备码" prop="deviceCode" />
-      <el-table-column label="授权码" prop="authCode" />
+      <el-table-column label="授权码" prop="tokenCode" />
       <el-table-column
         label="激活日期"
         prop="usedTime"

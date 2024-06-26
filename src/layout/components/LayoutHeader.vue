@@ -2,13 +2,13 @@
 import { EditPen, SwitchButton, CaretBottom } from '@element-plus/icons-vue'
 import defaultAvatar from '@/assets/default.png'
 import { useUserStore } from '@/stores'
-import { onMounted } from 'vue'
 import router from '@/router'
+import { onMounted } from 'vue'
 
 const userStore = useUserStore()
-
-onMounted(() => userStore.getUser())
-
+onMounted(async () => {
+  await userStore.getInfo()
+})
 const handleCommand = async (key) => {
   if (key === 'logout') {
     await ElMessageBox.confirm('你确认要退出登录吗？', '温馨提示', {
@@ -16,7 +16,7 @@ const handleCommand = async (key) => {
       cancelButtonText: '取消',
       type: 'warning'
     })
-    userStore.setUser({})
+    userStore.setInfo({})
     userStore.setToken('')
     router.push(`/login`)
   } else {
@@ -28,7 +28,7 @@ const handleCommand = async (key) => {
 <template>
   <el-header>
     <div>
-      当前用户：<strong>{{ userStore.user.username || '读取失败' }}</strong>
+      当前用户：<strong>{{ userStore.info.username || '读取失败' }}</strong>
     </div>
     <!-- 展示给用户看的部分 -->
     <el-dropdown placement="bottom-end" @command="handleCommand">

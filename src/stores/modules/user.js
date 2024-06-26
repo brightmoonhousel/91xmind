@@ -2,28 +2,31 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { userGetInfoService } from '@/api/user.js'
 
-// 用户模块 state:token action:setToken action:removeToken
 export const useUserStore = defineStore(
   'userinfo',
   () => {
-    const token = ref() // 用户token
-    const user = ref({}) //用户信息 {id, username, nickname, email, user_pic}
+    const token = ref(null) // 初始值为 null
+    const info = ref({ id: null, username: '' }) // 初始值为空对象
+
     const setToken = (newToken) => {
       token.value = newToken
     }
-    const setUser = (obj) => {
-      user.value = obj
+
+    const getInfo = async () => {
+      const resInfo = await userGetInfoService()
+      setInfo(resInfo.data)
     }
-    const getUser = async () => {
-      const res = await userGetInfoService()
-      user.value = res.data
+
+    const setInfo = (obj) => {
+      info.value = { ...obj } // 使用对象解构确保不直接修改原始对象
     }
+
     return {
       token,
-      user,
+      info,
       setToken,
-      getUser,
-      setUser
+      setInfo,
+      getInfo
     }
   },
   {

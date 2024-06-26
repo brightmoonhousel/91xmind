@@ -1,7 +1,6 @@
 <script setup>
 import LayoutAside from './components/LayoutAside.vue'
 import LayoutHeader from './components/LayoutHeader.vue'
-import LayoutFooter from './components/LayoutFooter.vue'
 </script>
 
 <template>
@@ -13,7 +12,7 @@ import LayoutFooter from './components/LayoutFooter.vue'
         <!-- 路由页面显示 -->
         <router-view />
       </el-main>
-      <Layout-Footer />
+     <!--  <Layout-Footer /> -->
     </el-container>
   </el-container>
 </template>

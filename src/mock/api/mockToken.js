@@ -6,8 +6,7 @@ for (let i = 0; i < 100; i++) {
   let newObject = {
     id: i + 1,
     tokenCode: Random.string('lower', 10),
-    days: 365,
-    isExported: Random.boolean()
+    days: 365
   }
   moreList.push(newObject)
 }
@@ -21,37 +20,37 @@ let log = []
 for (let i = 0; i < 15; i++) {
   let newObject = {
     id: i + 1,
-    time: Random.datetime(),
-    data: addlog
+    time: 1548381600000,
+    data: addlog.join('\n')
   }
   log.push(newObject)
 }
 
 export default [
   {
-    url: '/api/v1/tokenlist',
-    method: 'post',
-    response: ({ body }) => {
-      // 每页几条
-      const pageSize = body.pageSize
-      // 当前页
-      const currentPage = body.currentPage
-
-      const isExported = body.isExported
-
-      let moreList2 = [...moreList]
-
-      if (isExported !== '') {
-        moreList2 = moreList2.filter((item) => item.isExported + '' == isExported)
+    url: '/api/v1/tokeninfo',
+    method: 'get',
+    response: ({ query }) => {
+      if (query.tokenCode) {
+        return {
+        
+          code: 200,
+          message: '请求成功',
+          data: moreList.slice(0, 1)
+        }
       }
+      // 每页几条
+      const pageSize = query.pageSize
+      // 当前页
+      const currentPage = query.currentPage
 
       return {
         code: 200,
         message: '请求成功',
+        query:query,
         data: {
-          pageSize: pageSize,
-          total: moreList2.length,
-          list: moreList2.slice(
+          total: moreList.length,
+          rows: moreList.slice(
             (currentPage - 1) * pageSize,
             (currentPage - 1) * pageSize + pageSize
           )
@@ -104,24 +103,13 @@ export default [
     }
   },
   {
-    url: '/api/v1/tokenlist',
-    method: 'get',
-    response: () => {
-      return {
-        code: 200,
-        message: '删除成功',
-        data: moreList.slice(0, 1)
-      }
-    }
-  },
-  {
     url: '/api/v1/tokenlog',
-    method: 'post',
-    response: ({ body }) => {
+    method: 'get',
+    response: ({ query }) => {
       // 每页几条
-      const pageSize = body.pageSize
+      const pageSize = query.pageSize
       // 当前页
-      const currentPage = body.currentPage
+      const currentPage = query.currentPage
 
       return {
         code: 200,
@@ -129,7 +117,7 @@ export default [
         data: {
           pageSize: pageSize,
           total: log.length,
-          list: log.slice((currentPage - 1) * pageSize, (currentPage - 1) * pageSize + pageSize)
+          rows: log.slice((currentPage - 1) * pageSize, (currentPage - 1) * pageSize + pageSize)
         }
       }
     }

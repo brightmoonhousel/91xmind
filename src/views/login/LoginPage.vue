@@ -6,6 +6,8 @@ import { useUserStore } from '@/stores'
 import router from '@/router'
 
 const userStore = useUserStore()
+const loading = ref(false)
+// 表单
 const form = ref()
 const formModel = ref({
   username: '',
@@ -13,44 +15,38 @@ const formModel = ref({
 })
 const rules = {
   username: [
-    // 非空校验
-    {
-      required: true,
-      message: '用户名不能为空',
-      trigger: 'blur'
-    },
-    // 长度校验
-    {
-      min: 5,
-      max: 10,
-      message: '用户名必须是5-10位的字符',
-      trigger: 'blur'
-    }
+    { required: true, message: '用户名不能为空', trigger: 'blur' },
+    { min: 5, max: 10, message: '用户名必须是5-10位的字符', trigger: 'blur' }
   ],
   password: [
-    // 非空校验
-    {
-      required: true,
-      message: '密码不能为空',
-      trigger: 'blur'
-    },
-    // 正则校验
-    {
-      pattern: /^\S{6,15}$/, // \S是非空 6-15位非空
-      message: '密码必须是6-15位的字符',
-      trigger: 'blur'
-    }
+    { required: true, message: '密码不能为空', trigger: 'blur' },
+    { pattern: /^\S{6,15}$/, message: '密码必须是6-15位的字符', trigger: 'blur' }
   ]
 }
-console.log(this)
+// 登录函数
 const login = async () => {
-  if (!form.value) return
-  // 表单校验
-  await form.value.validate()
-  const res = await userLoginService(formModel.value)
-  userStore.setToken(res.token)
-  ElMessage.success(res.message)
-  router.push('/')
+  try {
+    if (!form.value) return
+    // 先验证表单
+    await form.value.validate()
+    // 开始请求时设置按钮 loading 状态为 true
+    loading.value = true
+    // 发起登录请求
+    const res = await userLoginService(formModel.value)
+    // 登录成功，设置用户 token
+    userStore.setToken(res.token)
+    // 显示成功消息
+    ElMessage.success(res.message)
+    // 跳转到首页
+    router.push('/')
+  } catch (error) {
+    // 捕获错误并显示错误消息
+    ElMessage.error('登录失败，请重试')
+    console.error('登录失败', error)
+  } finally {
+    // 无论成功或失败，请求完成后设置按钮 loading 状态为 false
+    loading.value = false
+  }
 }
 </script>
 
@@ -75,7 +71,7 @@ const login = async () => {
         ></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button @click="login" auto-insert-space>Login</el-button>
+        <el-button :loading="loading" @click="login" auto-insert-space>Login</el-button>
       </el-form-item>
     </el-form>
   </el-row>
