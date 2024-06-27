@@ -19,7 +19,7 @@ const colorsArr = [
   "\x1b[96m", // Bright Cyan
   "\x1b[92m" // Bright Green
 ];
-let t = 0;
+
 const log = {
   /**
    *
@@ -27,13 +27,19 @@ const log = {
    * @param  {...any} args
    */
   colors: function (...args) {
+    let color = colors.BrightCyan;
+    let arg = args;
+    if (args.length > 1) {
+      color = colors[args[0]];
+      arg = args.slice(1);
+    }
     console.log(
-      `\n${colorsArr[t++]}`,
+      `\n`,
+      color,
       "[" + new Date().toLocaleString() + "]",
       ...args,
       `\x1b[0m\n`
     );
-    if (t >= colorsArr.length) t = 0;
   },
   info: function (...args) {
     console.log(

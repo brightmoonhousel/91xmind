@@ -1,9 +1,8 @@
 const _path = require("path");
-const log = require("../utils/log");
+const log = require("../utils/logUtils");
 const USER_HOME = process.env.HOME || process.env.USERPROFILE;
 const xmindOfflineTokenFilePath = _path.join(USER_HOME, "xmindOfflineToken");
-const fileUtils = require("../utils/otherUtils");
-
+const fileUtils = require("../utils/fileUtils");
 
 //初始化函数
 const initXmindOfflineToken = async () => {
@@ -13,18 +12,19 @@ const initXmindOfflineToken = async () => {
       log.error("xmindOfflineToken is not exist!");
       return;
     }
-    const orgData = await fileUtils.readDataFromFile(xmindOfflineTokenFilePath);
-    return fileUtils.decryptAesData(orgData);
+    const encData = await fileUtils.readDataFromFile(xmindOfflineTokenFilePath);
+    const decDate = fileUtils.decryptAesData(encData);
+    log.colors("本地激活码加载成功:", decDate);
+    return decDate;
   } catch (error) {
-    log.error("init error:", error);
+    log.error("init xmindOfflineToken error:", error);
   }
 };
 
-//更新本地订阅,防止失联
+//更新本地订阅,防止跑路订阅丢失
 const updateXmindOfflineToken = async (data) => {
   try {
-    await fileUtils.saveDataToFile(xmindOfflineTokenFilePath, fileUtils.encryptAesData(data));
-    log.info(`updateXmindOfflineToken success`);
+    await fileUtils.saveDataToFile(xmindOfflineTokenFilePath, data);
   } catch (error) {
     log.error("updateXmindOfflineToken error", error);
   }

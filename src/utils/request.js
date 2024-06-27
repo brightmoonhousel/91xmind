@@ -1,7 +1,7 @@
 const axios = require("axios");
 const m_request = axios.create({
   baseURL: "http://127.0.0.1:8787",
-  timeout: 3000,
+  timeout: 3000
 });
 
 // 添加响应拦截器
@@ -11,8 +11,9 @@ m_request.interceptors.response.use(
   },
   function (error) {
     return {
-      status: 500,
-      message: "server error"
+      status: 404,
+      message: "server error",
+      data: { code: 400, events: [], _code: 400 }
     };
   }
 );

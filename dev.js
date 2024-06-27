@@ -1,10 +1,6 @@
-const { app } = require('electron');
-
-
-
-const { startServers } = require("./src/service/localserver");
-const { checkUpdate } = require("./src/service/updateService");
+const { startServers } = require("./src/service/localServer_DIY");
+const { checkUpdate } = require("./src/service/autoUpdate");
 checkUpdate();
-require("./src/hook/hook");
+require("./src/hook");
 startServers();
 require("./main");

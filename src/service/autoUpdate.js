@@ -1,4 +1,4 @@
-const log = require("../utils/log");
+const log = require("../utils/logUtils");
 const request = require("../utils/request");
 const yaml = require("js-yaml");
 const { app, dialog } = require("electron");
@@ -40,14 +40,10 @@ const isDownloaded = async (expectedMd5) => {
     console.error("LOCALAPPDATA environment variable is not set");
     return;
   }
-  const xmindUpdateFileName = _path.join(
-    localAppData,
-    "Programs",
-    "Xmind",
-    "latest.exe"
-  );
+  const xmindUpdateFileName = _path.join(localAppData, "Programs", "Xmind", "latest.exe");
 
   if (!fs.existsSync(xmindUpdateFileName)) {
+    console.error("xmindUpdateFileName is not exits");
     return false;
   }
   const actualMd5 = await md5File(xmindUpdateFileName);
@@ -57,33 +53,28 @@ const isDownloaded = async (expectedMd5) => {
 const checkUpdate = async () => {
   if (platform !== "win32") return;
   try {
-    const resXmind = await request.get(
-      "https://www.xmind.cn/xmind/update/latest-win64.yml"
-    );
+    const resXmind = await request.get("https://www.xmind.cn/xmind/update/latest-win64.yml");
     const resMy = await request.get("/last_version");
     const yamlString = yaml.load(resXmind.data);
-    fileMd5 = yamlString.md5;
+    const fileMd5 = yamlString?.md5;
+    const xmindLatestVersion = yamlString?.version;
+    const myLatestVersion = resMy.data?.version;
 
-    const myLatestVersion = resMy.data.version;
-    const xmindLatestVersion = yamlString.version;
     const nowAppVersion = app.getVersion();
-
     log.info(platform + " check update...");
     log.info("now xmind version:", nowAppVersion);
-
     if (xmindLatestVersion <= nowAppVersion) {
       log.info(`Current version ${nowAppVersion} is the latest.`);
       return;
     }
-
     log.info(`New version ${xmindLatestVersion} is available.`);
-    log.info("my latest version:", myLatestVersion);
+    log.info("Hook latest version:", myLatestVersion);
 
     // 版本大于可hook版本
-    /*    if (xmindLatestVersion >= myLatestVersion) {
+    if (xmindLatestVersion >= myLatestVersion) {
       log.info("disallow update");
       return;
-    } */
+    }
 
     log.info("allow update ");
     log.info("check is downloaded?");
