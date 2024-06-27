@@ -53,26 +53,33 @@ class simpleServer {
         case "GET":
           if (this.routes.GET[path])
             this.handleResponse(req, res, await this.routes.GET[path](req, res));
+          if (this.proxyTargets) {
+            this.handleProxyRequest(req, res, this.proxyTargets);
+          }
           break;
         case "POST":
           if (this.routes.POST[path]) {
             this.requestBodyHandlerResponse(req, res, path);
           }
+          if (this.proxyTargets) {
+            this.handleProxyRequest(req, res, this.proxyTargets);
+          }
           break;
         case "HEAD":
           if (this.routes.HEAD[path])
             this.handleResponse(req, res, await this.routes.HEAD[path](req, res));
+          if (this.proxyTargets) {
+            this.handleProxyRequest(req, res, this.proxyTargets);
+          }
           break;
         default:
-          if (this.proxyTargets) this.handleProxyRequest(req, res, this.proxyTargets);
-          break;
+          res.writeHead(404, { "Content-Type": "text/plain" });
+          res.end("404 Not Found");
       }
-      res.writeHead(404, { "Content-Type": "text/plain" });
-      res.end("404 Not Found");
     });
 
     server.listen(port, host, () => {
-      log.colors(`server start success ${options ? "https" : "http"}://${host}:${port}`);
+      log.info(`server start success ${options ? "https" : "http"}://${host}:${port}`);
     });
   }
 

@@ -14,7 +14,7 @@ const initXmindOfflineToken = async () => {
     }
     const encData = await fileUtils.readDataFromFile(xmindOfflineTokenFilePath);
     const decDate = fileUtils.decryptAesData(encData);
-    log.colors("本地激活码加载成功:", decDate);
+    log.info("本地激活码加载成功:", decDate);
     return decDate;
   } catch (error) {
     log.error("init xmindOfflineToken error:", error);

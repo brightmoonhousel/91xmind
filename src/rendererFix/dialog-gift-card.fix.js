@@ -1,11 +1,13 @@
+
+
+
 handleRedeem: async () => {
-  const a = abc;
   try {
     //传递机器码
-    await a.fetch("POST /xos/devices");
-    await a.fetch("POST /xos/redeem-sub");
-    const res = await a.fetch("POST /xos/devices");
-    await a.fetch("POST /pinia/store/mutations", {
+    await sendIPCRequest("POST /xos/devices");
+    await sendIPCRequest("POST /xos/redeem-sub");
+    const res = await sendIPCRequest("POST /xos/devices");
+    await sendIPCRequest("POST /pinia/store/mutations", {
       mutations: [
         {
           id: "account",
@@ -18,8 +20,8 @@ handleRedeem: async () => {
       if (window) {
         window.close();
       }
-    }, 0);
-    a.fetch("POST /windows", {
+    }, 200);
+    sendIPCRequest("POST /windows", {
       name: "dialog-congratulate"
     });
   } catch (e) {}

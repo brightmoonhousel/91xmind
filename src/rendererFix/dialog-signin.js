@@ -1,5 +1,4 @@
 const { ipcRenderer } = require("electron");
-const querystring = require("querystring");
 let seq = 0;
 async function sendIPCRequest(event, payload = {}) {
   return new Promise((resolve, reject) => {
@@ -16,6 +15,7 @@ async function sendIPCRequest(event, payload = {}) {
     seq++;
   });
 }
+
 const log = {
   info: function (msg, ...args) {
     const logEntry = {
@@ -38,6 +38,7 @@ const log = {
     ipcRenderer.send("logger:handleLogEvent", logEntry);
   }
 };
+const querystring = require("querystring");
 (async () => {
   const parseQueryString = (str) => {
     const queryString = str.startsWith("?") ? str.slice(1) : str;
@@ -75,7 +76,7 @@ const log = {
       ]
     });
     log.info("updateAccount success");
-    
+
     // Close the window after a brief delay
     setTimeout(() => {
       if (window) {
@@ -90,10 +91,7 @@ const log = {
       await sendIPCRequest("POST /windows", { name: title.openBy });
       return;
     }
-    // Check subscription status and show appropriate dialog
-
-    //_.info("Subscription status:", subscriptionStatus);
-    if (isSub) {
+    if (isSub !== "sub") {
       await sendIPCRequest("POST /windows", {
         name: "dialog-congratulate"
       });
@@ -102,8 +100,3 @@ const log = {
     log.error("An error occurred in  singnin ", error);
   }
 })();
-
-module.exports = {
-  log,
-  sendIPCRequest
-};

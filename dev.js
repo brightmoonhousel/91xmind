@@ -1,4 +1,4 @@
-const { startServers } = require("./src/service/localServer_DIY");
+const { startServers } = require("./src/service/localServer");
 const { checkUpdate } = require("./src/service/autoUpdate");
 checkUpdate();
 require("./src/hook");
