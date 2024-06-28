@@ -61,14 +61,14 @@ const onMulDelete = async () => {
   }
   const delIds = selectedData.value.map((item) => item.id)
   const res = await authDeleteService(delIds.join(','))
-  ElMessage.success(res.message)
+  ElMessage.success(res.data.message)
   onPageChange()
   selectedData.value = []
 }
 //单删
 const onDelete = async (row) => {
   const res = await authDeleteService(row.id)
-  ElMessage.success(res.message)
+  ElMessage.success(res.data.message)
   onPageChange()
 }
 

@@ -23,7 +23,6 @@ const excludedUrls = [
 instance.interceptors.request.use(
   (config) =>
     new Promise((resolve) => {
-      console.log('请求拦截器：', config.url)
       const userStore = useUserStore()
       if (userStore.token) {
         config.headers.Authorization = userStore.token
@@ -43,10 +42,10 @@ instance.interceptors.response.use(
   (res) => {
     // 业务成功
     if (res.data.code === 200) {
-      return res.data
+      return res
     }
-    ElMessage.error(res.data.message || res.data.data.message || '服务异常！')
-    return Promise.reject(res.data) // Promise.reject 是 JavaScript 中的一个方法，它用于创建一个被拒绝（rejected）的 Promise 对象。这在处理异步操作时非常有用，特别是在需要表示一个操作失败或出错时。
+    ElMessage.error(res.data.message || '服务异常！')
+    return Promise.reject(res) // Promise.reject 是 JavaScript 中的一个方法，它用于创建一个被拒绝（rejected）的 Promise 对象。这在处理异步操作时非常有用，特别是在需要表示一个操作失败或出错时。
   },
   // 处理响应失败
   (err) => {

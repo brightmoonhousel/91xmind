@@ -3,10 +3,7 @@ import { ref } from 'vue'
 import { ElMessage, ElForm, ElFormItem, ElInput, ElButton } from 'element-plus'
 import 'element-plus/dist/index.css'
 import { userUpdatePassword } from '@/api/user.js'
-import { useUserStore } from '@/stores/modules/user'
-import router from '@/router'
 
-const userStore = useUserStore()
 const formRef = ref(null)
 const form = ref({
   oldPassword: '',
@@ -52,13 +49,9 @@ const submitForm = () => {
     if (valid) {
       // 发送更新请求到服务器
       const res = await userUpdatePassword(form.value)
-      ElMessage.success(res.message)
-      userStore.setToken('')
-      userStore.setUser({})
-      router.push('/login')
-      // 实际操作中，这里应该是发送请求到服务器的代码
+      ElMessage.success(res.data.message)
+      form.value = {}
     } else {
-      ElMessage.error('表单验证失败')
       return false
     }
   })

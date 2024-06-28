@@ -107,7 +107,7 @@ const onUpdateCategory = async (isUpdate) => {
   const res = isUpdate
     ? await tokenUpdateService(editFormModel.value)
     : await tokenAddService(addFormModel.value)
-  ElMessage.success(res.message)
+  ElMessage.success(res.data.message)
   onResetFrom()
   emit('onUpdateScucess')
 }

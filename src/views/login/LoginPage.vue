@@ -34,15 +34,13 @@ const login = async () => {
     // 发起登录请求
     const res = await userLoginService(formModel.value)
     // 登录成功，设置用户 token
-    userStore.setToken(res.token)
+    userStore.setToken(res.data.token)
     // 显示成功消息
-    ElMessage.success(res.message)
+    ElMessage.success(res.data.message)
     // 跳转到首页
     router.push('/')
   } catch (error) {
     // 捕获错误并显示错误消息
-    ElMessage.error('登录失败，请重试')
-    console.error('登录失败', error)
   } finally {
     // 无论成功或失败，请求完成后设置按钮 loading 状态为 false
     loading.value = false

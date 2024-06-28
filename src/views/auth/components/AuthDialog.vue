@@ -50,7 +50,7 @@ const onUpdateCategory = async (isUpdate) => {
   formModel.value.expiryTime = dayjs(formModel.value.expiryTime).valueOf()
   const service = isUpdate ? authUpdateService : authAddService
   const res = await service(formModel.value)
-  ElMessage.success(res.message)
+  ElMessage.success(res.data.message)
   emit('success')
   onResetFrom()
 }

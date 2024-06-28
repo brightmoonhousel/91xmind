@@ -36,14 +36,14 @@ const onMulDelete = async () => {
   }
   const delIds = selectedData.value.map((item) => item.id)
   const res = await logDeleteService(delIds.join(','))
-  ElMessage.success(res.message)
+  ElMessage.success(res.data.message)
   onPageChange()
   selectedData.value = []
 }
 //单删
 const onDelete = async (row) => {
   const res = await logDeleteService(row.id)
-  ElMessage.success(res.message)
+  ElMessage.success(res.data.message)
   onPageChange()
 }
 //分页变化

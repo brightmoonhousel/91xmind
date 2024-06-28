@@ -68,7 +68,7 @@ const onMulDelete = async () => {
   }
   const delIds = selectedData.value.map((item) => item.id)
   const res = await tokenDeleteService(delIds.join(','))
-  ElMessage.success(res.message)
+  ElMessage.success(res.data.message)
   emit('onMulDeleteScucess')
   selectedData.value = []
 }

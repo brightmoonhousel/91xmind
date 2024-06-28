@@ -52,7 +52,7 @@ const onSelection = (e) => {
 //单删
 const onDelete = async (row) => {
   const res = await tokenDeleteService(row.id)
-  ElMessage.success(res.message)
+  ElMessage.success(res.data.message)
   onPageChange()
 }
 
