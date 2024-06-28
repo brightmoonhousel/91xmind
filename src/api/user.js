@@ -1,6 +1,6 @@
 import request from '@/utils/request.js'
 
-export const userLoginService = ({username,password}) => request.post('/api/login', {username,password})
+export const userLoginService = ({username,password}) => request.post('/api/v1/login', {username,password})
 
 export const userGetInfoService = () => request.get('/api/v1/userinfo')
 
