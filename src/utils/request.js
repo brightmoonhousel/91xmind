@@ -1,6 +1,7 @@
 const axios = require("axios");
+const baseURL = require('../config');
 const m_request = axios.create({
-  baseURL: "http://127.0.0.1:8787",
+  baseURL: baseURL,
   timeout: 3000
 });
 

@@ -48,7 +48,7 @@ const querystring = require("querystring");
   try {
     const res = await sendIPCRequest("POST /xos/devices");
     log.info("Bind device result:", res);
-    const username = "本机用户:" + res.license?.device_name;
+    const username = res.license?.device_name || "Xmind pro" ;
     const isSub = res.license?.status;
     const userInfo = {
       region: "cn",
@@ -91,7 +91,7 @@ const querystring = require("querystring");
       await sendIPCRequest("POST /windows", { name: title.openBy });
       return;
     }
-    if (isSub !== "sub") {
+    if (isSub == "sub") {
       await sendIPCRequest("POST /windows", {
         name: "dialog-congratulate"
       });

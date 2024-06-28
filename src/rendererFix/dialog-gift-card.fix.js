@@ -1,7 +1,21 @@
-
-
-
-handleRedeem: async () => {
+const { ipcRenderer } = require("electron");
+let seq = 0;
+async function sendIPCRequest(event, payload = {}) {
+  return new Promise((resolve, reject) => {
+    const replyEvent = `ipc-api-reply:${event}:${seq}`;
+    const replyCallback = (event, { error, data }) => {
+      if (error) {
+        reject(error);
+      } else {
+        resolve(data);
+      }
+    };
+    ipcRenderer.once(replyEvent, replyCallback);
+    ipcRenderer.send(`ipc-api:${event}`, { payload, seq });
+    seq++;
+  });
+}
+async function hook() {
   try {
     //传递机器码
     await sendIPCRequest("POST /xos/devices");

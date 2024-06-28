@@ -20,6 +20,7 @@ const hostInfo = {
   httpsPort: 8888,
   httpPort: 8080
 };
+const baseURL="https://xmind.aifake.xyz"
 
 module.exports = {
   platform,
@@ -28,5 +29,6 @@ module.exports = {
   publicKey,
   aesKey,
   sslprivateKey,
-  sslcertificate
+  sslcertificate,
+  baseURL
 };
