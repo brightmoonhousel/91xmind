@@ -18,7 +18,15 @@ type Bindings = {
   JWT_EXP: number;
 };
 const app = new Hono<{ Bindings: Bindings }, { Variables: Variables }>();
-app.use("*", cors()).use("/api/v1/*", (c, next) => {
+
+
+app.use(
+  '/*',
+  cors({
+    origin: 'https://admin.xmind.aifake.xyz',
+  })
+)
+app.use("/api/v1/*", (c, next) => {
   const jwtMiddleware = jwt({
     secret: c.env.JWT_SECRET
   });
@@ -28,7 +36,7 @@ app.use("*", cors()).use("/api/v1/*", (c, next) => {
 app.get("/last_version", async (c: Context) =>
   c.json({ version: c.env.Latest_Version })
 );
-app.route("/api/login", loginRouter);
+app.route("/api/login", loginRouter); 
 app.route("/api/v1/userinfo", userInfoRouter);
 app.route("/api/v1/tokeninfo", tokenRoute);
 app.route("/api/v1/authinfo", authRoutes);
