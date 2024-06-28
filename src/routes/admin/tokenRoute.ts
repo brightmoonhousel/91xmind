@@ -25,7 +25,7 @@ const tokenListValid = zValidator(
   (value, c) => {
     if (!value.success) {
       const messages = value.error.errors.map((error) => error.message);
-      return c.json({ data: { code: 400, message: messages.join(",") } });
+      return c.json( {code: 400, message: messages.join(",")  });
     }
   }
 );
@@ -39,7 +39,7 @@ const tokenUpdateValid = zValidator(
   (value, c) => {
     if (!value.success) {
       const messages = value.error.errors.map((error) => error.message);
-      return c.json({ data: { code: 400, message: messages.join(",") } });
+      return c.json( {code: 400, message: messages.join(",")  });
     }
   }
 );
@@ -61,7 +61,7 @@ const tokenDeleteValid = zValidator(
   (value, c) => {
     if (!value.success) {
       const messages = value.error.errors.map((error) => error.message);
-      return c.json({ data: { code: 400, message: messages.join(",") } });
+      return c.json( {code: 400, message: messages.join(",")  });
     }
   }
 );
@@ -74,7 +74,7 @@ const tokenAddValid = zValidator(
   (value, c) => {
     if (!value.success) {
       const messages = value.error.errors.map((error) => error.message);
-      return c.json({ data: { code: 400, message: messages.join(",") } });
+      return c.json( {code: 400, message: messages.join(",")  });
     }
   }
 );

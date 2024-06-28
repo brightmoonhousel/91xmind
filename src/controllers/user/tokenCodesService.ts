@@ -12,7 +12,7 @@ export const getAuthInfo = async (c: Context) => {
       .first();
     if (!deviceCodeInfo || deviceCodeInfo.isBanned) {
       return c.json({
-        code: 400,  
+        code: 400,
         message: "设备码无效或封禁"
       });
     }
@@ -30,13 +30,7 @@ export const getAuthInfo = async (c: Context) => {
     return c.json({
       code: 200,
       message: "success",
-      data: {
-        raw_data: encryptedData,
-        license: {
-          status: "sub",
-          expireTime: deviceCodeInfo.expiryTime
-        }
-      }
+      raw_data: encryptedData
     });
   } catch (error) {
     return c.json({
@@ -66,7 +60,7 @@ export const verificationCode = async (c: Context) => {
     return c.json({
       code: 200,
       message: "success",
-      data: { desc: days == -1 ? "永久订阅" : `${days} 天` }
+      desc: days == -1 ? "永久订阅" : `${days} 天`
     });
   } catch (error) {
     return c.json({
@@ -105,7 +99,7 @@ export const usedCode = async (c: Context) => {
       .bind(deviceCode)
       .first();
 
-    if (deviceCodeInfo.id) {
+    if (deviceCodeInfo?.id) {
       //更新用户授权信息
       await c.env.DB.prepare(
         "UPDATE tb_auth SET deviceCode = ?1 ,tokenCode= ?2 ,expiryTime = ?3 , isBanned = ?4 WHERE id = ?5"
@@ -124,15 +118,18 @@ export const usedCode = async (c: Context) => {
     //删除被使用了的授权码
     //如果是管理员激活码则不删除000000-000000-000000-000000
     if (tokenCode != "000000-000000-000000-000000") {
-      await c.env.DB.prepare(`DELETE FROM tb_token WHERE id = ?`).bind(id).run();
+      await c.env.DB.prepare(`DELETE FROM tb_token WHERE id = ?`)
+        .bind(id)
+        .run();
     }
+
+    const submsg = `{"status": "sub", "expireTime": ${expiryTime}, "ss": "", "deviceId": "${deviceCode}"}`;
+    const encryptedData = encryptData(submsg, "9504867335124261");
 
     return c.json({
       code: 200,
       message: "success",
-      data: {
-        raw_data: `VxDmQYPKsNBw1XIIP7Ak7J0pavWyOYljC63kS3oT7K4onXR60Xv4R0Wf9LvVADoP/7xhoEeQhbKJLiZBnZAPg7eljLDKI/i/BngYcroMDUYTVlMVI8RaozLHFOcQw3MQ+iD6xAX0qMKaZFQNFAoHZmJDaN6JBSxsvpwQ1HcK6f0=`
-      }
+      raw_data: encryptedData
     });
   } catch (error) {
     return c.json({

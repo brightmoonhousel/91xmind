@@ -16,7 +16,7 @@ const tokenLogListValid = zValidator(
   (value, c) => {
     if (!value.success) {
       const messages = value.error.errors.map((error) => error.message);
-      return c.json({ data: { code: 400, message: messages.join(",") } });
+      return c.json( {code: 400, message: messages.join(",")  });
     }
   }
 );
@@ -39,7 +39,7 @@ const tokenLogDeleteValid = zValidator(
   (value, c) => {
     if (!value.success) {
       const messages = value.error.errors.map((error) => error.message);
-      return c.json({ data: { code: 400, message: messages.join(",") } });
+      return c.json( {code: 400, message: messages.join(",")  });
     }
   }
 );

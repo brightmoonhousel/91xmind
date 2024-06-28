@@ -22,6 +22,8 @@ CREATE TABLE IF NOT EXISTS tb_token (
     extra_info TEXT
 );
 
+CREATE INDEX idx_tokenCode ON tb_token (tokenCode);
+
 -- 删除现有的auth表（如果存在）
 DROP TABLE IF EXISTS tb_auth;
 
@@ -35,6 +37,7 @@ CREATE TABLE IF NOT EXISTS tb_auth (
     isBanned BOOLEAN NOT NULL DEFAULT 0,
     extra_info TEXT
 );
+CREATE INDEX idx_deviceCode ON tb_auth (deviceCode);
 
 
 -- 删除现有的token修改日志表（如果存在）

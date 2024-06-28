@@ -27,7 +27,7 @@ export const tokenLogList = async (c: Context) => {
     const query = c.req.query();
     let pageSize = Number(query.pageSize);
     let currentPage = Number(query.currentPage);
-    
+
     const tokenLogPage = new page(c.env.DB, "token_log");
     const total = await tokenLogPage.count();
     if (total / pageSize < currentPage) {
@@ -44,10 +44,8 @@ export const tokenLogList = async (c: Context) => {
     return c.json({
       code: 200,
       message: "请求成功",
-      data: {
-        total: total,
-        rows: pageResult
-      }
+      total: total,
+      rows: pageResult
     });
   } catch (error) {
     return c.json({

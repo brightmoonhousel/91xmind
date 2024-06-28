@@ -20,16 +20,14 @@ export const userGetInfo = async (c: Context) => {
     return c.json({
       code: 200,
       message: "请求成功",
-      data: {
-        id: userInfo.id,
-        username: userInfo.username,
-        extra_info: userInfo.extra_info
-      }
+      id: userInfo.id,
+      username: userInfo.username,
+      extra_info: userInfo.extra_info
     });
   } catch (error) {
     return c.json({
       code: 500,
-      message: `${error}`,
+      message: `${error}`
     });
   }
 };

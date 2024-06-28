@@ -26,10 +26,8 @@ export const tokenList = async (c: Context) => {
     return c.json({
       code: 200,
       message: "请求成功",
-      data: {
-        total: total,
-        rows: pageResult
-      }
+      total: total,
+      rows: pageResult
     });
   } catch (error) {
     return c.json({
