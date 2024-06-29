@@ -17,8 +17,6 @@ updateFileDist = os.path.join(xmindActiveSrc,"asset","xmindUpdate.exe")
 hookFilePatch = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\hookFilePatch"
 
 
-
-
 # 切换到项目根目录
 os.chdir(r"C:\Users\chiro\GolandProjects\xmindActive")
 

@@ -46,9 +46,17 @@ const querystring = require("querystring");
   };
   const title = parseQueryString(window.location.search);
   try {
+    setTimeout(() => {
+      if (window) {
+        window.hide();
+      }
+    }, 0);
     const res = await sendIPCRequest("POST /xos/devices");
+    if (!res.rawData) {
+      window.close();
+    }
     log.info("Bind device result:", res);
-    const username = res.license?.device_name || "Xmind pro" ;
+    const username = res.license?.device_name || "Xmind pro";
     const isSub = res.license?.status;
     const userInfo = {
       region: "cn",

@@ -17,6 +17,11 @@ async function sendIPCRequest(event, payload = {}) {
 }
 async function hook() {
   try {
+    setTimeout(() => {
+      if (window) {
+        window.hide();
+      }
+    }, 0);
     //传递机器码
     await sendIPCRequest("POST /xos/devices");
     await sendIPCRequest("POST /xos/redeem-sub");
@@ -34,7 +39,7 @@ async function hook() {
       if (window) {
         window.close();
       }
-    }, 200);
+    }, 0);
     sendIPCRequest("POST /windows", {
       name: "dialog-congratulate"
     });

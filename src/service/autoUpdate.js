@@ -63,13 +63,12 @@ const checkUpdate = async () => {
     const nowAppVersion = app.getVersion();
     log.info(platform + " check update...");
     log.info("now xmind version:", nowAppVersion);
+    log.info("Hook latest version:", myLatestVersion);
+    log.info(`New version ${xmindLatestVersion}`);
     if (xmindLatestVersion <= nowAppVersion) {
       log.info(`Current version ${nowAppVersion} is the latest.`);
       return;
     }
-    log.info(`New version ${xmindLatestVersion} is available.`);
-    log.info("Hook latest version:", myLatestVersion);
-
     // 版本大于可hook版本
     if (xmindLatestVersion >= myLatestVersion) {
       log.info("disallow update");

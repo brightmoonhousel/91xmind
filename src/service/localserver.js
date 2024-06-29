@@ -53,10 +53,9 @@ httpsServer.post("/_res/devices", async (req, res) => {
         _code: 200
       };
     }
-    //远程失败,获取本地授权数据
     if (xmindOfflineToken) {
       const subMsgObj = JSON.parse(xmindOfflineToken);
-      log.info("本地授权数据获取成功", subMsgObj);
+      log.info("远程失败,获取本地授权数据", subMsgObj);
       if (subMsgObj.expireTime > new Date().getTime()) {
         return {
           raw_data: utils.encryptRsaData(xmindOfflineToken),

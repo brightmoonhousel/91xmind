@@ -1,37 +1,30 @@
 import os
 import shutil
 import subprocess
-import time
+
+subprocess.run(r"node C:\Users\chiro\AppData\Local\Programs\Xmind\resources\app\main\build\build.js")
+
 # 设置环境变量
 os.environ["GOARCH"] = "amd64"
 os.environ["GOOS"] = "darwin"
 
-# 读取 hook.js 和 init.js 的内容
-with open("mac/hook.js", "r", encoding="utf-8") as f:
-    hook_content = f.read()
-with open("general/init.js", "r", encoding="utf-8") as f:
-    init_content = f.read()
-# 拼接内容
-xmind_content = hook_content + init_content
-# 将拼接后的内容保存为 xmind.js
-with open("mac/xmind.js", "w", encoding="utf-8") as f:
-    f.write(xmind_content)
-# 执行 javascript-obfuscator
-os.system("javascript-obfuscator mac/xmind.js --config ob.json -o mac/asset/xmind.b.js")
-# 删除中间文件
-os.remove("mac/xmind.js")
+xmindActiveSrc = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive"
+activeFileDist = os.path.join(xmindActiveSrc,"dist","xmindActive_Mac_darwin")
 
-# 睡眠一秒
-time.sleep(1)
+xmindUpdateSrc = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindUpdate"
+updateFileDist = os.path.join(xmindActiveSrc,"asset","xmindUpdate.exe")
+
+hookFilePatch = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\hookFilePatch"
+
 
 # 切换到项目根目录
 os.chdir(r"C:\Users\chiro\GolandProjects\xmindActive")
 
 # 获取脚本运行当前路径
 script_path = os.path.dirname(os.path.abspath(__file__))
-source_dir = os.path.join(script_path, "mac/asset")
+source_dir = os.path.join(script_path, "asset")
 target_dirs = [
-    r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\asset",
+    os.path.join(hookFilePatch, "asset"),
 ]
 # 复制文件
 for target_dir in target_dirs:
@@ -44,14 +37,12 @@ for target_dir in target_dirs:
             print(f"Copied {full_file_name} to {target_dir}")
 
 
-
-activeFileSrc = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive"
-activeFileDist = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindActive\dist\xmind_server_changes_mac"
 outfile = os.path.join(
     os.environ["USERPROFILE"],
     "Desktop",
-    "xmind_server_changes_win.exe",
+    "xmindActive_mac",
 )
+
 # 定义要执行的 garble 和 upx 命令
 commands = [
     [
@@ -60,7 +51,7 @@ commands = [
         "build",
         "-o",
         activeFileDist,
-        activeFileSrc,
+        xmindActiveSrc,
     ],
     [
         "upx",
@@ -69,12 +60,11 @@ commands = [
         "-o",
         outfile,
         activeFileDist,
-        "--force-macos",
+        "--force-macos"
     ],
 ]
-
-os.remove(outfile)
-
+if os.path.exists(outfile):
+    os.remove(outfile)
 # 执行命令
 for i, command in enumerate(commands):
     try:
