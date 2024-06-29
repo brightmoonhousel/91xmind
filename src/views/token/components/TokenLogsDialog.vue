@@ -75,9 +75,12 @@ const logTokenDialogVisible = ref(false)
 const tokenData = ref({})
 const onOpenTokenDialog = (row) => {
   logTokenDialogVisible.value = true
+
+  const arr = row.tokens.split(',')
+  console.log(arr)
   tokenData.value = {
-    length: row.data.match(/\n/g) ? row.data.match(/\n/g).length + 1 : 1,
-    data: row.data
+    length: arr.length,
+    data: arr.join('\n')
   }
 }
 </script>
@@ -95,12 +98,13 @@ const onOpenTokenDialog = (row) => {
         </el-button>
       </template>
     </el-popconfirm>
+    <!-- 表格区域 -->
     <el-table v-loading="tableLoading" :data="LogTableData" @selection-change="onSelection">
       <el-table-column type="selection" label="多选框" />
       <el-table-column
         prop="time"
         label="提交时间"
-        :formatter="(row) => formatTime2(row.time)"
+        :formatter="(row) => formatTime2(row.addTime)"
       ></el-table-column>
       <el-table-column label="操作" fixed="right" width="200">
         <template #default="scope">
@@ -131,6 +135,7 @@ const onOpenTokenDialog = (row) => {
       />
     </div>
   </el-dialog>
+
   <el-dialog v-model="logTokenDialogVisible" title="授权码" width="30%" center>
     <el-input
       readonly
