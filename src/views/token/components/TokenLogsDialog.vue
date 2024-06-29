@@ -77,7 +77,6 @@ const onOpenTokenDialog = (row) => {
   logTokenDialogVisible.value = true
 
   const arr = row.tokens.split(',')
-  console.log(arr)
   tokenData.value = {
     length: arr.length,
     data: arr.join('\n')
