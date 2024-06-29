@@ -98,7 +98,7 @@ const onOpenTokenDialog = (row) => {
       </template>
     </el-popconfirm>
     <!-- 表格区域 -->
-    <el-table v-loading="tableLoading" :data="LogTableData" @selection-change="onSelection">
+    <el-table  table-layout="auto" v-loading="tableLoading" :data="LogTableData" @selection-change="onSelection">
       <el-table-column type="selection" label="多选框" />
       <el-table-column
         prop="time"

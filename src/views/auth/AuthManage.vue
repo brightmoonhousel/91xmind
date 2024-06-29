@@ -129,6 +129,7 @@ const onPageChange = async () => {
 
     <!-- 表格区域 -->
     <el-table
+     table-layout="auto"
       v-loading="tableLoading"
       :data="authCodeTableData"
       style="width: 100%"
