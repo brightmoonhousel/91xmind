@@ -4,14 +4,35 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	goasar2 "xmindActive/cmd/goasar"
+	"time"
+	"xmindActive/cmd/goasar"
 )
 
 func main() {
+	start := time.Now()
+	//初始化文件信息
+	appAsar := goasar.NewAsarFile("C:\\Users\\chiro\\GolandProjects\\xmindActive\\cmd\\goasarCLI\\app.asar")
+	//读取到内存
+	err := appAsar.Open()
+	if err != nil {
+		return
+	}
 
+	asarSys, err := goasar.NewSimpleFileSystemByAsar(appAsar)
+	asarSys.ListFiles()
+	if asarSys == nil {
+		return
+	}
+
+	// 计算执行时间
+	duration := time.Since(start)
+
+	// 输出执行时间
+	fmt.Printf("Function execution time: %s\n", duration)
+}
+func Extract() {
 	// 检查是否有命令行参数传入
 	if len(os.Args) < 2 {
-		fmt.Println("请拖动文件到可执行文件来运行此程序")
 		return
 	}
 
@@ -22,14 +43,14 @@ func main() {
 	}
 
 	//初始化文件信息
-	appAsar := goasar2.NewAsarFile(fPath)
+	appAsar := goasar.NewAsarFile(fPath)
 	//读取到内存
 	err := appAsar.Open()
 	if err != nil {
 		return
 	}
 
-	asarSys, err := goasar2.NewSimpleFileSystemByAsar(appAsar)
+	asarSys, err := goasar.NewSimpleFileSystemByAsar(appAsar)
 	if asarSys == nil {
 		return
 	}

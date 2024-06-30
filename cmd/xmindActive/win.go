@@ -7,19 +7,19 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
-	"xmindActive/cmd/hookFilePatch"
+	"xmindActive/cmd/xmindFix"
 )
 
 //go:embed asset/*.exe
 var asset embed.FS
 
-func checkEnv() error {
-	// 检查Xmind是否存在
-	if !hookFilePatch.FileExists(hookFilePatch.AsarFile) {
+func checkEnv(isPatching bool) error {
+	// 正在改变则检查Xmind是否存在
+	if isPatching && !xmindFix.FileExists(xmindFix.AsarFile) {
 		return errors.New("xmind is not installed")
 	}
 	//杀死进程
-	hookFilePatch.KillProcessByName("Xmind.exe")
+	xmindFix.KillProcessByName("Xmind.exe")
 	//复制win自动更新程序
 	winCopyUpdateFile()
 	return nil

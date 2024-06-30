@@ -15,14 +15,14 @@ type Asar struct {
 	path               string
 	HeaderSize         uint32                 //headerLength的二进制数据大小
 	HeaderLength       uint32                 //头数据长度
-	JsonHeaderSize     uint32                 //json字符串长度+JsonHeaderLength unit32二进制数据大小
+	JsonHeaderSize     uint32                 //json字符串长度再加填充长度+JsonHeaderLength的unit32二进制数据大小 也就是+4
 	JsonHeaderLength   uint32                 //json字符串长度
 	JsonHeaderStrMap   map[string]interface{} //json字符串Map
 	JsonHeaderStrBytes *[]byte                //json字符串二进制数据
 	DataBuffer         *[]byte                //二进制数据
 }
 
-// Afile 文件中的文件信息
+// Afile Asar文件中的每个文件的信息
 type Afile struct {
 	Offset     string
 	Size       float64
@@ -114,88 +114,3 @@ func (asar *Asar) Save() error {
 	fp.Write(*asar.DataBuffer)
 	return nil
 }
-
-//func (asar *Asar) ListAsarFiles() {
-//
-//	var aFiles []Afile
-//	readAsarFilesInfo(asar.header["files"].(map[string]interface{}), "", &aFiles)
-//	for i := range aFiles {
-//		fmt.Println(aFiles[i].Path)
-//	}
-//}
-
-//	func ExtractAsar(asarPath string, prePath string) error {
-//		asar, _ := OpenAsar(asarPath)
-//		defer asar.Close()
-//		var aFiles []Afile
-//		readAsarFilesInfo(asar.header["files"].(map[string]interface{}), "", &aFiles)
-//		// 创建一个有固定容量的WaitGroup，用于等待所有goroutine完成
-//		var wg sync.WaitGroup
-//		wg.Add(len(aFiles))
-//		// 限制并发数
-//		sem := make(chan struct{}, 10)
-//		for _, a := range aFiles {
-//			if a.Unpacked {
-//				continue
-//			}
-//			// 在允许的并发数范围内启动goroutine
-//			sem <- struct{}{}
-//			go func(a Afile) {
-//				defer func() {
-//					wg.Done()
-//					<-sem // 释放一个并发数
-//				}()
-//				err := createFile(a, prePath, asar)
-//				if err != nil {
-//					fmt.Println(err)
-//				}
-//			}(a)
-//		}
-//		wg.Wait()
-//		return nil
-//	}
-//
-//	func createFile(a Afile, prePath string, asar *Asar) error {
-//		size := int(a.Size)
-//		offset, _ := strconv.Atoi(a.Offset)
-//
-//		fp := filepath.Join(prePath, a.Path)
-//		/**
-//		Split: "/ home/ arnie/ amelia. jpg"
-//		dir: "/ home/ arnie/"
-//		file: "amelia. jpg"
-//		*/
-//		dir, _ := filepath.Split(fp)
-//		//creat dir
-//		mu.Lock()
-//		defer mu.Unlock()
-//		err := os.MkdirAll(dir, os.ModePerm)
-//		//creat file
-//		file, err := os.Create(fp)
-//		if err != nil {
-//			fmt.Printf("无法创建目标文件: %v\n", err)
-//			return err
-//		}
-//		defer file.Close()
-//
-//		// Moves the file pointer to the  offset location
-//		_, err = asar.fp.Seek(int64(asar.baseOffset+offset), io.SeekStart)
-//		if err != nil {
-//			fmt.Printf("无法移动文件指针: %v\n", err)
-//			return err
-//		}
-//		// read The Data And Write To The TargetFile
-//		data := make([]byte, size)
-//		_, err = io.ReadFull(asar.fp, data)
-//		if err != nil {
-//			fmt.Printf("无法读取数据: %v\n", err)
-//			fmt.Println(a)
-//			return err
-//		}
-//		_, err = file.Write(data)
-//		if err != nil {
-//			fmt.Printf("无法写入目标文件: %v\n", err)
-//			return err
-//		}
-//		return nil
-//	}

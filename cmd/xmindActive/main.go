@@ -3,17 +3,16 @@ package main
 
 import (
 	"fmt"
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/fogleman/ease"
+	"github.com/lucasb-eyer/go-colorful"
 	"math"
 	"math/rand"
 	"strconv"
 	"strings"
 	"time"
-	"xmindActive/cmd/hookFilePatch"
-
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
-	"github.com/lucasb-eyer/go-colorful"
+	"xmindActive/cmd/xmindFix"
 )
 
 // 禁止
@@ -115,13 +114,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	if msg, ok := msg.(tea.KeyMsg); ok {
 		k := msg.String()
 		if k == "q" || k == "esc" || k == "ctrl+c" {
-			m.Quitting = true
-			return m, tea.Quit
+			if m.Chosen == false {
+				m.Quitting = true
+				return m, tea.Quit
+			}
+			m = model{0, false, 3, 0, 0, false, false, "", false, 0}
+			return m, nil
 		}
 	}
 	switch msg.(type) {
 	case launchMsg:
-		go hookFilePatch.RebootApp(hookFilePatch.XmindExe)
+		go xmindFix.RebootApp(xmindFix.XmindExe)
 	}
 	// 将消息和模型移交给相应的更新函数
 	// 基于当前状态的适当视图。
@@ -164,7 +167,7 @@ func updateChoices(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 			m.Chosen = true
 			if m.Choice == 0 {
 				go func() {
-					err := checkEnv()
+					err := checkEnv(true)
 					if err != nil {
 						time.Sleep(time.Second * 1)
 						p.Send(failedMsg{err.Error()})
@@ -172,7 +175,7 @@ func updateChoices(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 					} else {
 						p.Send(changeState{})
 					}
-					err = hookFilePatch.StartPatch()
+					err = xmindFix.StartPatch()
 					if err != nil {
 						time.Sleep(time.Second * 1)
 						p.Send(failedMsg{err.Error()})
@@ -183,7 +186,7 @@ func updateChoices(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 				}()
 			} else if m.Choice == 1 {
 				go func() {
-					err := checkEnv()
+					err := checkEnv(false)
 					if err != nil {
 						time.Sleep(time.Second * 1)
 						p.Send(failedMsg{err.Error()})
@@ -191,7 +194,7 @@ func updateChoices(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 					} else {
 						p.Send(changeState{})
 					}
-					err = hookFilePatch.Restore()
+					err = xmindFix.Restore()
 					if err != nil {
 						time.Sleep(time.Second * 1)
 						p.Send(failedMsg{err.Error()})
@@ -256,7 +259,7 @@ func updateChosen(msg tea.Msg, m model) (tea.Model, tea.Cmd) {
 // Sub-views
 func choicesView(m model) string {
 	c := m.Choice
-	tpl := "What you want to do ?   " + failedStyle.Render("操作前请先保存未完成的项目!!!") + "\n\n"
+	tpl := "What you want to do ?   " + "\n\n"
 	tpl += "%s\n\n"
 	tpl += "\n\n"
 	tpl += subtleStyle.Render("↑/↓: 方向键上下选择") + dotStyle +

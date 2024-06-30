@@ -18,7 +18,7 @@ import (
 	"syscall"
 	"time"
 	"unsafe"
-	"xmindActive/cmd/hookFilePatch"
+	"xmindActive/cmd/xmindFix"
 )
 
 const (
@@ -103,6 +103,7 @@ func main() {
 		fmt.Println("文件不完整")
 		os.Exit(0)
 	}
+
 	//先检测xmind是否打开状态
 	for {
 		if !isProcessRunning(exeName) {
@@ -134,7 +135,7 @@ func main() {
 			continue
 		}
 		fmt.Println("覆盖完成，开始patch")
-		err = hookFilePatch.UpdatePatch()
+		err = xmindFix.UpdatePatch()
 		if err != nil {
 			fmt.Printf("更新失败: %v\n", err)
 			retries++
