@@ -1,3 +1,7 @@
 /.idea
 *.exe
 /.vscode/
+/dist
+/cmd/xmindFix/asset
+/cmd/xmindActive/dist
+/cmd/goasarCLI/*.asar
