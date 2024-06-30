@@ -1,34 +1,41 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
-	"time"
 	"xmindActive/cmd/goasar"
 )
 
 func main() {
-	start := time.Now()
-	//初始化文件信息
-	appAsar := goasar.NewAsarFile("C:\\Users\\chiro\\GolandProjects\\xmindActive\\cmd\\goasarCLI\\app.asar")
-	//读取到内存
-	err := appAsar.Open()
+	inputDir := "C:\\Users\\chiro\\GolandProjects\\xmindActive\\cmd\\xmindActive\\asset"
+	outputDir := "C:\\Users\\chiro\\GolandProjects\\xmindActive\\cmd\\xmindActive\\asset_enc"
+
+	err := filepath.Walk(inputDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if !info.IsDir() {
+			compressed, err := compressFile(path)
+			if err != nil {
+				return err
+			}
+			outputPath := filepath.Join(outputDir, info.Name()+".gz")
+			err = os.WriteFile(outputPath, compressed, 0644)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Compressed %s to %s\n", path, outputPath)
+		}
+		return nil
+	})
+
 	if err != nil {
-		return
+		fmt.Println("Error:", err)
 	}
-
-	asarSys, err := goasar.NewSimpleFileSystemByAsar(appAsar)
-	asarSys.ListFiles()
-	if asarSys == nil {
-		return
-	}
-
-	// 计算执行时间
-	duration := time.Since(start)
-
-	// 输出执行时间
-	fmt.Printf("Function execution time: %s\n", duration)
 }
 func Extract() {
 	// 检查是否有命令行参数传入
@@ -60,4 +67,32 @@ func Extract() {
 	if err != nil {
 		return
 	}
+}
+
+func compressFile(filename string) ([]byte, error) {
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	var buf bytes.Buffer
+	gz := gzip.NewWriter(&buf)
+	if _, err := gz.Write(content); err != nil {
+		return nil, err
+	}
+	if err := gz.Close(); err != nil {
+		return nil, err
+	}
+
+	return buf.Bytes(), nil
+}
+
+func decompressFile(compressed []byte) ([]byte, error) {
+	r, err := gzip.NewReader(bytes.NewBuffer(compressed))
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+
+	return io.ReadAll(r)
 }
