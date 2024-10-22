@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
-	"fmt"
 	"io"
 	"os"
 	"path/filepath"
@@ -11,31 +10,32 @@ import (
 )
 
 func main() {
-	inputDir := "C:\\Users\\chiro\\GolandProjects\\xmindActive\\cmd\\xmindActive\\asset"
-	outputDir := "C:\\Users\\chiro\\GolandProjects\\xmindActive\\cmd\\xmindActive\\asset_enc"
+	Extract()
+	//inputDir := "C:\\Users\\chiro\\GolandProjects\\xmindActive\\cmd\\xmindActive\\asset"
+	//outputDir := "C:\\Users\\chiro\\GolandProjects\\xmindActive\\cmd\\xmindActive\\asset_enc"
+	//
+	//err := filepath.Walk(inputDir, func(path string, info os.FileInfo, err error) error {
+	//	if err != nil {
+	//		return err
+	//	}
+	//	if !info.IsDir() {
+	//		compressed, err := compressFile(path)
+	//		if err != nil {
+	//			return err
+	//		}
+	//		outputPath := filepath.Join(outputDir, info.Name()+".gz")
+	//		err = os.WriteFile(outputPath, compressed, 0644)
+	//		if err != nil {
+	//			return err
+	//		}
+	//		fmt.Printf("Compressed %s to %s\n", path, outputPath)
+	//	}
+	//	return nil
+	//})
 
-	err := filepath.Walk(inputDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		if !info.IsDir() {
-			compressed, err := compressFile(path)
-			if err != nil {
-				return err
-			}
-			outputPath := filepath.Join(outputDir, info.Name()+".gz")
-			err = os.WriteFile(outputPath, compressed, 0644)
-			if err != nil {
-				return err
-			}
-			fmt.Printf("Compressed %s to %s\n", path, outputPath)
-		}
-		return nil
-	})
-
-	if err != nil {
-		fmt.Println("Error:", err)
-	}
+	//if err != nil {
+	//	fmt.Println("Error:", err)
+	//}
 }
 func Extract() {
 	// 检查是否有命令行参数传入
