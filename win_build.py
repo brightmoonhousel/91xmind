@@ -4,7 +4,7 @@ import subprocess
 
 subprocess.run(r"node C:\Users\chiro\AppData\Local\Programs\Xmind\resources\app\main\build\build.js")
 
-
+#设置环境变量
 os.environ["GOARCH"] = "amd64"
 os.environ["GOOS"] = "windows"
 
@@ -14,8 +14,7 @@ activeFileDist = os.path.join(xmindActiveSrc,"dist","xmindActive_Win.exe")
 xmindUpdateSrc = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindUpdate"
 updateFileDist = os.path.join(xmindActiveSrc,"asset","xmindUpdate.exe")
 
-hookFilePatch = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\hookFilePatch"
-
+hookFilePatch = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindFix"
 
 # 切换到项目根目录
 os.chdir(r"C:\Users\chiro\GolandProjects\xmindActive")

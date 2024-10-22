@@ -37,7 +37,7 @@ httpsServer.post("/_res/devices", async (req, res) => {
   };
   try {
     //初始化订阅
-    log.info("当前用户信息", body);
+    log.info("Now user info", body);
     //获取远程授权数据
     const resData = await request.get("/api/v2/listen", {
       params: { deviceCode: globalDeviceCode }

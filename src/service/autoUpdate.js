@@ -59,12 +59,11 @@ const checkUpdate = async () => {
     const fileMd5 = yamlString?.md5;
     const xmindLatestVersion = yamlString?.version;
     const myLatestVersion = resMy.data?.version;
-
     const nowAppVersion = app.getVersion();
     log.info(platform + " check update...");
-    log.info("now xmind version:", nowAppVersion);
+    log.info("local xmind version:", nowAppVersion);
     log.info("Hook latest version:", myLatestVersion);
-    log.info(`New version ${xmindLatestVersion}`);
+    log.info(`remote xmind version ${xmindLatestVersion}`);
     if (xmindLatestVersion <= nowAppVersion) {
       log.info(`Current version ${nowAppVersion} is the latest.`);
       return;

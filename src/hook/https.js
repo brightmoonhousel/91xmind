@@ -3,6 +3,8 @@ const https = require("https");
 const { platform, hostInfo } = require("../config");
 
 const originalHttpsRequest = https.request;
+
+//已失效 官方不通过此地址获取更新信息
 https.request = (urlOrOptions, optionsOrCallback, callback) => {
   let url, options, cb;
   if (typeof urlOrOptions === "string" || urlOrOptions instanceof URL) {
