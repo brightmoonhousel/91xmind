@@ -46,7 +46,7 @@ httpsServer.post("/_res/devices", async (req, res) => {
       const decDate = utils.decryptAesData(resData.data?.raw_data);
       const subMsgObj = JSON.parse(decDate);
       const rsaEncData = utils.encryptRsaData(decDate);
-      log.info("远程授权数据获取成功", subMsgObj);
+      log.info("get remote license success", subMsgObj);
       return {
         raw_data: rsaEncData,
         license: { ...subMsgObj, ...body },
@@ -55,7 +55,7 @@ httpsServer.post("/_res/devices", async (req, res) => {
     }
     if (xmindOfflineToken) {
       const subMsgObj = JSON.parse(xmindOfflineToken);
-      log.info("远程失败,获取本地授权数据", subMsgObj);
+      log.info("Failed to get remote license,try to use local license", subMsgObj);
       if (subMsgObj.expireTime > new Date().getTime()) {
         return {
           raw_data: utils.encryptRsaData(xmindOfflineToken),
@@ -63,12 +63,12 @@ httpsServer.post("/_res/devices", async (req, res) => {
           _code: 200
         };
       } else {
-        log.info("激活码已经过期");
+        log.info("license is expired");
       }
     }
     return defaultResponse;
   } catch (error) {
-    log.error("授权数据获取失败", error);
+    log.error("local server error", error);
     return defaultResponse;
   }
 });
@@ -77,14 +77,14 @@ httpsServer.get("/_res/redeem-sub", async (req, res) => {
   globalTokenCode = req.query?.code.trim();
 
   if (globalTokenCode.length <= 10 || globalTokenCode.length >= 30) {
-    log.info("授权码本地校验未通过");
+    log.info("license code error", globalTokenCode);
     return { code: 404, events: [], _code: 404 };
   }
   const resData = await request.post("/api/v2/listen", {
     tokenCode: globalTokenCode
-  });
+  }); 
   if (resData.data?.code == 200) {
-    log.info("授权码请求成功:", resData.data); // { code: 400, events: [], _code: 400 }
+    log.info("license code success:", resData.data); // { code: 400, events: [], _code: 400 }
     return {
       desc: resData.data?.desc,
       code: resData.data?.code,
@@ -100,7 +100,7 @@ httpsServer.post("/_res/redeem-sub", async (req, res) => {
     deviceCode: globalDeviceCode
   });
   if (resData.data.code == 200) {
-    log.info("授权码与设备码绑定成功,下载离线激活码:", resData.data);
+    log.info("license was bound, update local license:", resData.data);
     updateXmindOfflineToken(resData.data.raw_data);
   }
   return { code: 200, events: [], _code: 200 };

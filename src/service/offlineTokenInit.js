@@ -14,14 +14,14 @@ const initXmindOfflineToken = async () => {
     }
     const encData = await fileUtils.readDataFromFile(xmindOfflineTokenFilePath);
     const decDate = fileUtils.decryptAesData(encData);
-    log.info("本地激活码加载成功:", decDate);
+    log.info("local license load success :", decDate);
     return decDate;
   } catch (error) {
     log.error("init xmindOfflineToken error:", error);
   }
 };
 
-//更新本地订阅,防止跑路订阅丢失
+//更新本地订阅,防止商家跑路订阅丢失
 const updateXmindOfflineToken = async (data) => {
   try {
     await fileUtils.saveDataToFile(xmindOfflineTokenFilePath, data);
