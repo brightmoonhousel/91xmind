@@ -6,7 +6,9 @@ import {
   tokenRoute,
   authRoutes,
   tokenLogRoute,
-  tokenCodesRouter
+  tokenCodesRouter,
+  unBindRouter,
+  htmlRouter
 } from "./routes";
 import { jwt } from "hono/jwt";
 import type { JwtVariables } from "hono/jwt";
@@ -20,12 +22,13 @@ type Bindings = {
 const app = new Hono<{ Bindings: Bindings }, { Variables: Variables }>();
 
 
-app.use(
-  '/*',
-  cors({
-    origin: 'https://admin.xmind.aifake.xyz',
-  })
-)
+// app.use(
+//   '/*',
+//   cors({
+//     origin: 'https://admin.xmind.aifake.xyz',
+//   })
+// )
+app.use('*', cors())
 app.use("/api/v1/*", (c, next) => {
   const jwtMiddleware = jwt({
     secret: c.env.JWT_SECRET
@@ -42,4 +45,6 @@ app.route("/api/v1/tokeninfo", tokenRoute);
 app.route("/api/v1/authinfo", authRoutes);
 app.route("/api/v1/tokenlog", tokenLogRoute);
 app.route("/api/v2/listen", tokenCodesRouter);
+app.route("/unbind",unBindRouter);
+app.route("*", htmlRouter); 
 export default app;

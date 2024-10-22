@@ -5,9 +5,7 @@ import encryptData from "../../utils/encrypt";
 export const getAuthInfo = async (c: Context) => {
   try {
     const { deviceCode } = c.req.query();
-    const deviceCodeInfo = await c.env.DB.prepare(
-      "SELECT * FROM tb_auth WHERE deviceCode = ?"
-    )
+    const deviceCodeInfo = await c.env.DB.prepare("SELECT * FROM tb_auth WHERE deviceCode = ?")
       .bind(deviceCode)
       .first();
     if (!deviceCodeInfo || deviceCodeInfo.isBanned) {
@@ -44,9 +42,7 @@ export const getAuthInfo = async (c: Context) => {
 export const verificationCode = async (c: Context) => {
   try {
     const { tokenCode } = await c.req.json();
-    const tokenCodesInfo = await c.env.DB.prepare(
-      `SELECT * FROM tb_token WHERE  tokenCode = ?`
-    )
+    const tokenCodesInfo = await c.env.DB.prepare(`SELECT * FROM tb_token WHERE  tokenCode = ?`)
       .bind(tokenCode)
       .first();
     if (!tokenCodesInfo) {
@@ -75,27 +71,22 @@ export const usedCode = async (c: Context) => {
   try {
     const { deviceCode, tokenCode } = await c.req.json();
     // 获取授权码信息
-    const tokenCodesInfo = await c.env.DB.prepare(
-      `SELECT * FROM tb_token WHERE  tokenCode = ?`
-    )
+    const tokenCodesInfo = await c.env.DB.prepare(`SELECT * FROM tb_token WHERE  tokenCode = ?`)
       .bind(tokenCode)
       .first();
 
     if (!tokenCodesInfo) {
       return c.json({
         code: 400,
-        message: "授权码不存在"
+        message: "授权码已使用或不存在"
       });
     }
     const { id, days } = tokenCodesInfo;
     const usedTime = new Date().getTime();
-    const expiryTime =
-      days == -1 ? 4070880000000 : usedTime + days * 24 * 60 * 60 * 1000;
+    const expiryTime = days == -1 ? 4070880000000 : usedTime + days * 24 * 60 * 60 * 1000;
 
     //判断用户是否存在
-    const deviceCodeInfo = await c.env.DB.prepare(
-      "SELECT * FROM tb_auth WHERE deviceCode = ?"
-    )
+    const deviceCodeInfo = await c.env.DB.prepare("SELECT * FROM tb_auth WHERE deviceCode = ?")
       .bind(deviceCode)
       .first();
 
@@ -118,9 +109,7 @@ export const usedCode = async (c: Context) => {
     //删除被使用了的授权码
     //如果是管理员激活码则不删除000000-000000-000000-000000
     if (tokenCode != "000000-000000-000000-000000") {
-      await c.env.DB.prepare(`DELETE FROM tb_token WHERE id = ?`)
-        .bind(id)
-        .run();
+      await c.env.DB.prepare(`DELETE FROM tb_token WHERE id = ?`).bind(id).run();
     }
 
     const submsg = `{"status": "sub", "expireTime": ${expiryTime}, "ss": "", "deviceId": "${deviceCode}"}`;
@@ -137,4 +126,33 @@ export const usedCode = async (c: Context) => {
       message: `${error}`
     });
   }
+};
+//解绑授权码
+export const unBind = async (c: Context) => {
+  const { unbindCode } = await c.req.json();
+  // 获取绑定信息
+  const authInfo = await c.env.DB.prepare(`SELECT * FROM tb_auth WHERE  tokenCode = ?`)
+    .bind(unbindCode)
+    .first();
+  if (!authInfo) {
+    return c.json({
+      code: 400,
+      message: "授权码不存在或已经解绑"
+    });
+  }
+  //授权码入库
+  let day = authInfo.expiryTime - Date.now();
+  if (day < 0) {
+    day = 0; // 如果到期时间已经过去，返回0天
+  }
+  day = Math.ceil(day / 86400000); // 转换为天数并向上取整
+  await c.env.DB.prepare("INSERT INTO tb_token (tokenCode, days) VALUES (?1, ?2)")
+    .bind(unbindCode, day)
+    .run();
+  //删除旧授权信息
+  await c.env.DB.prepare(`DELETE FROM tb_auth WHERE tokenCode = ?`).bind(unbindCode).run();
+  return c.json({
+    code: 200,
+    message: "解绑成功"
+  });
 };

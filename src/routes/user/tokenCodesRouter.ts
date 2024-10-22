@@ -1,17 +1,17 @@
 import { Hono } from "hono";
-import { verificationCode,usedCode,getAuthInfo } from "../../controllers";
+import { verificationCode, usedCode, getAuthInfo } from "../../controllers";
 import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 //验证器
 const verificationCodeValid = zValidator(
   "json",
   z.object({
-    tokenCode: z.string().min(27).max(27),
+    tokenCode: z.string().min(27).max(27)
   }),
   (value, c) => {
     if (!value.success) {
       const messages = value.error.errors.map((error) => error.message);
-      return c.json( {code: 400, message: messages.join(",")  });
+      return c.json({ code: 400, message: messages.join(",") });
     }
   }
 );
@@ -29,6 +29,7 @@ const usedCodeValid = zValidator(
     }
   }
 );
+
 const getAuthInfoValid = zValidator(
   "query",
   z.object({
@@ -44,4 +45,4 @@ const getAuthInfoValid = zValidator(
 export const tokenCodesRouter = new Hono();
 tokenCodesRouter.post("/", verificationCodeValid, verificationCode);
 tokenCodesRouter.put("/", usedCodeValid, usedCode);
-tokenCodesRouter.get("/", getAuthInfoValid , getAuthInfo);
+tokenCodesRouter.get("/", getAuthInfoValid, getAuthInfo);
