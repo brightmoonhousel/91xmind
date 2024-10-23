@@ -53,7 +53,8 @@ httpsServer.post("/_res/devices", async (req, res) => {
         _code: 200
       };
     }
-    if (xmindOfflineToken) {
+    //网络连接失败尝试本地激活
+    if (resData.status != 200 && xmindOfflineToken) {
       const subMsgObj = JSON.parse(xmindOfflineToken);
       log.info("Failed to get remote license,try to use local license", subMsgObj);
       if (subMsgObj.expireTime > new Date().getTime()) {
@@ -66,6 +67,8 @@ httpsServer.post("/_res/devices", async (req, res) => {
         log.info("license is expired");
       }
     }
+    //激活码被封禁
+    log.info("license was not found or Bannished !!!", subMsgObj);
     return defaultResponse;
   } catch (error) {
     log.error("local server error", error);
@@ -82,7 +85,7 @@ httpsServer.get("/_res/redeem-sub", async (req, res) => {
   }
   const resData = await request.post("/api/v2/listen", {
     tokenCode: globalTokenCode
-  }); 
+  });
   if (resData.data?.code == 200) {
     log.info("license code success:", resData.data); // { code: 400, events: [], _code: 400 }
     return {
@@ -91,7 +94,7 @@ httpsServer.get("/_res/redeem-sub", async (req, res) => {
       _code: resData.data?.code
     };
   }
-  return { desc: "", code: 400, _code: 400 };
+  return { desc: "", code: 404, _code: 404 };
 });
 
 httpsServer.post("/_res/redeem-sub", async (req, res) => {

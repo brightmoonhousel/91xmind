@@ -12,9 +12,9 @@ m_request.interceptors.response.use(
   },
   function (error) {
     return {
-      status: 400,
+      status: 404,
       message: "server error",
-      data: { code: 400, events: [], _code: 400 },
+      data: { code: 404, events: [], _code: 404 },
       error: error
     };
   }

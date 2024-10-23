@@ -8,7 +8,7 @@ const _path = require("path");
 const { platform } = require("../config");
 const md5File = require("md5-file");
 /*-------------------------------------------------*/
-// windows执行更新
+// windows执行更新 20241022暂时弃用
 const updateXmind = (args) => {
   const winAppData = process.env.APPDATA;
   if (!winAppData) {

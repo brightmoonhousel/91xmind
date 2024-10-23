@@ -9,10 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@fastify/http-proxy": "^9.5.0",
-    "axios": "^1.7.2",
-    "js-yaml": "^4.1.0",
-    "md5-file": "^5.0.0"
+    "axios": "^1.7.2"
   },
   "devDependencies": {
     "esbuild": "^0.21.5",

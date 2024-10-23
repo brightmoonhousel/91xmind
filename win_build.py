@@ -16,9 +16,6 @@ updateFileDist = os.path.join(xmindActiveSrc,"asset","xmindUpdate.exe")
 
 hookFilePatch = r"C:\Users\chiro\GolandProjects\xmindActive\cmd\xmindFix"
 
-# 切换到项目根目录
-os.chdir(r"C:\Users\chiro\GolandProjects\xmindActive")
-
 # 获取脚本运行当前路径
 script_path = os.path.dirname(os.path.abspath(__file__))
 source_dir = os.path.join(script_path, "asset")
@@ -44,20 +41,20 @@ outfile = os.path.join(
 
 # 定义要执行的 garble 和 upx 命令
 commands = [
-    [
-        "garble",
-        "-tiny",
-        "build",
-        "-o",
-        updateFileDist,
-        xmindUpdateSrc,
-    ],
-    [
-        "upx",
-        "--best",
-        "--lzma",
-        updateFileDist,
-    ],
+    # [
+    #     "garble",
+    #     "-tiny",
+    #     "build",
+    #     "-o",
+    #     updateFileDist,
+    #     xmindUpdateSrc,
+    # ],
+    # [
+    #     "upx",
+    #     "--best",
+    #     "--lzma",
+    #     updateFileDist,
+    # ],
     [
         "garble",
         "-tiny",
@@ -78,6 +75,9 @@ commands = [
 if os.path.exists(outfile):
     os.remove(outfile)
 # 执行命令
+# 切换到项目根目录
+os.chdir(r"C:\Users\chiro\GolandProjects\xmindActive")
+
 for i, command in enumerate(commands):
     try:
         subprocess.run(command, check=True)
