@@ -2,6 +2,7 @@ package xmindFix
 
 import (
 	"embed"
+	"encoding/json"
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
@@ -56,8 +57,24 @@ func PatchAll() error {
 	if err != nil {
 		return err
 	}
-	newPackageFileString := strings.Replace(string(*packageFile.DataBuffer), "main.js", "xmind.js", 1)
-	*packageFile.DataBuffer = []byte(newPackageFileString)
+	var packageJson map[string]interface{}
+	if err := json.Unmarshal(*packageFile.DataBuffer, &packageJson); err != nil {
+		return err
+	}
+	packageJson["main"] = "main/xmind.js"
+	packageJson["buildNumber"] = "202405232355"
+	packageJson["version"] = "224.09.10311"
+	packageJson["buildVersion"] = "224.09.10311"
+	updatedData, err := json.Marshal(packageJson)
+	*packageFile.DataBuffer = updatedData
+
+	//修改about.js文件
+	aboutFile, err := asarSys.GetFile(filepath.Join("renderer", "about.js"))
+	if err != nil {
+		return err
+	}
+	newAboutFileString := FixAboutVersion(string(*aboutFile.DataBuffer))
+	*aboutFile.DataBuffer = []byte(newAboutFileString)
 
 	//修改dialog-gift-card.js文件
 	giftFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-gift-card.js"))
@@ -132,6 +149,12 @@ func FixDialogGiftCard(jsCode string) string {
 	fixStr := string(card) + updatedJSCode
 	return fixStr
 }
+
+func FixAboutVersion(jsCode string) string {
+	re := regexp.MustCompile(`formatBuildNumber\.*:`)
+	return re.ReplaceAllString(jsCode, `formatBuildNumber: () =>(new Date().getFullYear().toString().slice(-2) + '.' + (new Date().getMonth() + 1).toString().padStart(2, '0') + '.10310'),abc:`)
+}
+
 func FileExists(filename string) bool {
 	info, err := os.Stat(filename)
 	if os.IsNotExist(err) {
