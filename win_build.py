@@ -2,7 +2,7 @@ import os
 import shutil
 import subprocess
 
-subprocess.run(r"node C:\Users\chiro\AppData\Local\Programs\Xmind\resources\app\main\build\build.js")
+#subprocess.run(r"node C:\Users\chiro\AppData\Local\Programs\Xmind\resources\app\main\build\build.js")
 
 #设置环境变量
 os.environ["GOARCH"] = "amd64"
@@ -55,14 +55,14 @@ commands = [
     #     "--lzma",
     #     updateFileDist,
     # ],
-    [
-        "garble",
-        "-tiny",
-        "build",
-        "-o",
-        activeFileDist,
-        xmindActiveSrc,
-    ],
+    # [
+    #     "garble",
+    #     "-tiny",
+    #     "build",
+    #     "-o",
+    #     activeFileDist,
+    #     xmindActiveSrc,
+    # ],
     [
         "upx",
         "--best",

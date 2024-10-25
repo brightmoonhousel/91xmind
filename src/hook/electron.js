@@ -9,6 +9,9 @@ electron.net.request = (options, callback) => {
   if (url.startsWith("https://www.xmind.cn")) {
     url = url.replace("https://www.xmind.cn", fakeUrl);
   }
+  if (url.startsWith("https://www.xmind.app")) {
+    url = url.replace("https://www.xmind.app", fakeUrl);
+  }
   options.url = url;
   options.rejectUnauthorized = false;
   return originalElectronRequest.call(this, options, callback);
