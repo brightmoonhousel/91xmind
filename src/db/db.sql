@@ -41,9 +41,9 @@ CREATE INDEX idx_deviceCode ON tb_auth (deviceCode);
 
 
 -- 删除现有的token修改日志表（如果存在）
-DROP TABLE IF EXISTS token_log;
+DROP TABLE IF EXISTS tb_tklog;
 -- 创建token修改日志表
-CREATE TABLE IF NOT EXISTS token_log (
+CREATE TABLE IF NOT EXISTS tb_tklog (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     time INTEGER,
     data TEXT

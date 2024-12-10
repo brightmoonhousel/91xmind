@@ -25,7 +25,7 @@ export const tokenAdd = async (c: Context) => {
     const tokens = tokenCodes.map((i) => i[0]).join("\n");
     //获取当前时间戳
     const timestamp = new Date().getTime();
-    c.env.DB.prepare("INSERT INTO token_log (time, data) VALUES (?1, ?2)")
+    c.env.DB.prepare("INSERT INTO tb_tklog (time, data) VALUES (?1, ?2)")
       .bind(timestamp, tokens)
       .run();
 
