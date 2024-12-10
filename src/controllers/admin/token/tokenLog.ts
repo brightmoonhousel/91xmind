@@ -37,8 +37,8 @@ export const tokenLogList = async (c: Context) => {
     const pageResult = await tokenLogPage.paginate(
       currentPage,
       pageSize,
-      "time",
-      "desc"
+      "addTime",
+      "tokens"
     );
 
     return c.json({

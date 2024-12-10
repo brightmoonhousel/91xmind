@@ -94,7 +94,7 @@ INSERT INTO tb_auth (deviceCode, tokenCode, usedTime, expiryTime, isBanned, extr
   ('device10', 'token10', 1632477600, 1632481200, 0, 'Additional info for entry 10');
 
 -- 插入数据到tb_tklog表
-INSERT INTO tb_tklog (time, data) VALUES
+INSERT INTO tb_tklog (addTime, tokens) VALUES
   (1632477600, 'Data entry 1'),
   (1632477600, 'Data entry 2'),
   (1632477600, 'Data entry 3'),

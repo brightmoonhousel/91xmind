@@ -45,6 +45,6 @@ DROP TABLE IF EXISTS tb_tklog;
 -- 创建token修改日志表
 CREATE TABLE IF NOT EXISTS tb_tklog (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    time INTEGER,
-    data TEXT
+    addTime INTEGER,
+    tokens TEXT
 );
