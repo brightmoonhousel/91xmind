@@ -38,7 +38,7 @@ export const tokenLogList = async (c: Context) => {
       currentPage,
       pageSize,
       "addTime",
-      "tokens"
+      "DESC"
     );
 
     return c.json({

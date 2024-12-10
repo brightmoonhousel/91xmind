@@ -11,7 +11,11 @@ export const tokenAdd = async (c: Context) => {
     for (let i = 0; i < count; i++) {
       tokenCodes.push([generateToken(), days]);
     }
-
+    const tokens = tokenCodes.map((i) => i[0]).join("\n");
+    const timestamp = new Date().getTime();
+    c.env.DB.prepare("INSERT INTO tb_tklog (addTime, tokens) VALUES (?1, ?2)")
+      .bind(timestamp, tokens)
+      .run();
     // 使用多个插入语句插入激活码
     const insertPromises = tokenCodes.map(([tokenCode, days]) =>
       c.env.DB.prepare("INSERT INTO tb_token (tokenCode, days) VALUES (?1, ?2)")
@@ -20,15 +24,7 @@ export const tokenAdd = async (c: Context) => {
     );
 
     await Promise.all(insertPromises);
-
-    //日志表
-    const tokens = tokenCodes.map((i) => i[0]).join("\n");
-    //获取当前时间戳
-    const timestamp = new Date().getTime();
-    c.env.DB.prepare("INSERT INTO tb_tklog (time, data) VALUES (?1, ?2)")
-      .bind(timestamp, tokens)
-      .run();
-
+    
     return c.json({
       code: 200,
       message: "添加成功"
@@ -44,8 +40,8 @@ export const tokenAdd = async (c: Context) => {
 // 生成一个格式为 "202405-DFGUHR-VBMLKI-003659" 的激活码
 const generateToken = () => {
   const randomString = uuidv4().toUpperCase().replace(/-/g, "").slice(0, 24);
-  return `${randomString.slice(0, 6)}-${randomString.slice(
-    6,
-    12
-  )}-${randomString.slice(12, 18)}-${randomString.slice(18)}`;
+  return `${randomString.slice(0, 6)}-${randomString.slice(6, 12)}-${randomString.slice(
+    12,
+    18
+  )}-${randomString.slice(18)}`;
 };

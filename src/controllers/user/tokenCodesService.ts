@@ -146,6 +146,9 @@ export const unBind = async (c: Context) => {
     day = 0; // 如果到期时间已经过去，返回0天
   }
   day = Math.ceil(day / 86400000); // 转换为天数并向上取整
+  if (day >= 4000) {
+    day = -1;
+  }
   await c.env.DB.prepare("INSERT INTO tb_token (tokenCode, days) VALUES (?1, ?2)")
     .bind(unbindCode, day)
     .run();

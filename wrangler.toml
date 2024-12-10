@@ -11,15 +11,7 @@ JWT_EXP = 1440 # one/minutes
 [[d1_databases]]
 binding = "DB" # i.e. available in your Worker on env.DB
 database_name = "d1-xmind"
-database_id = "2b65c171-9792-4276-b3cc-d836d47ba843"
-
-
-
-
-
-
-
-
+database_id = "c640b790-6831-44cb-93ba-5025ba4fb5c5"
 
 
 
