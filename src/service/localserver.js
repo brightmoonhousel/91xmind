@@ -163,6 +163,7 @@ httpsServer.get("/xmind/update/latest-win64.yml", async (req, res) => {
   return `
     version: 0.0.0`;
 });
+
 //#endregion
 httpsServer.proxy("www.xmind.cn");
 const startServers = async () => {
