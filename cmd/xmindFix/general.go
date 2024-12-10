@@ -3,10 +3,12 @@ package xmindFix
 import (
 	"embed"
 	"encoding/json"
+	"errors"
 	_ "net/http/pprof"
 	"os"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 	"xmindActive/cmd/goasar"
 )
@@ -14,134 +16,192 @@ import (
 //go:embed asset/*
 var asset embed.FS
 
+var ValidVersion = "24.10.01101"
+
 var (
-	XmindExe       string // xmind.exe路径
-	asarDir        string // asar所在文件夹目录
-	AsarFile       string // asar文件目录
-	asarBackupFile string // asar备份文件目录
+	XmindExe           string // xmind.exe路径
+	asarDir            string // asar所在文件夹目录
+	AsarFile           string // asar文件目录
+	asarSys            *goasar.SimpleFileSystem
+	packageJson        map[string]interface{}
+	fixHtmlFileNameMap = map[string]string{
+		"dialog-signin.html":    "dialog-signin.js",
+		"about.html":            "about.js",
+		"dialog-gift-card.html": "dialog-gift-card.js",
+	}
 )
 
-func StartPatch() error {
-	// 查看备份文件是否存在，要是不存在，则说明没有激活过,备份文件
-	if !FileExists(asarBackupFile) {
-		// 备份文件
-		_ = os.Rename(AsarFile, asarBackupFile)
+// Prepare 初始化
+func Prepare() error {
+	if err := checkEnv(); err != nil {
+		return err
 	}
-	return PatchAll()
-}
-func UpdatePatch() error {
-	// 查看备份文件是否存在
-	if FileExists(asarBackupFile) {
-		//要是存在，删除文件
-		_ = os.Remove(asarBackupFile)
-	}
-	//重新备份
-	_ = os.Rename(AsarFile, asarBackupFile)
-	return PatchAll()
-}
-func PatchAll() error {
-	//初始化文件信息
-	appAsar := goasar.NewAsarFile(asarBackupFile)
-	//读取到内存
+	appAsar := goasar.NewAsarFile(AsarFile)
 	err := appAsar.Open()
 	if err != nil {
 		return err
 	}
-	asarSys, err := goasar.NewSimpleFileSystemByAsar(appAsar)
+	asarSys, err = goasar.NewSimpleFileSystemByAsar(appAsar)
 	if err != nil {
 		return err
 	}
-
-	//修改package.json文件
+	//读取package.json文件
 	packageFile, err := asarSys.GetFile("package.json")
 	if err != nil {
 		return err
 	}
-	var packageJson map[string]interface{}
-	if err := json.Unmarshal(*packageFile.DataBuffer, &packageJson); err != nil {
+	if err = json.Unmarshal(*packageFile.DataBuffer, &packageJson); err != nil {
 		return err
 	}
-	packageJson["main"] = "main/xmind.js"
-	packageJson["buildNumber"] = "202405232355"
-	packageJson["version"] = "224.09.10311"
-	packageJson["buildVersion"] = "224.09.10311"
-	updatedData, err := json.Marshal(packageJson)
-	*packageFile.DataBuffer = updatedData
+	if !isValidVersion(packageJson["version"].(string)) {
+		return errors.New("xmind version is lower, please update new version first")
+	}
+	return nil
+}
 
-	//修改about.js文件
+func isFix() bool {
+	return packageJson["main"] == "main/xmind.js"
+}
+
+func StartPatch() error {
+	if isFix() {
+		return errors.New("xmind has changed")
+	}
+	if err := checkEnv(); err != nil {
+		return err
+	}
+	//package.json////////////////////////////////
+	packageJson["main"] = "main/xmind.js"
+	packageJson["version"] = "224.09.10311"
+	packageFile, err := asarSys.GetFile("package.json")
+	if err != nil {
+		return err
+	}
+	updatedJsonData, err := json.Marshal(packageJson)
+	*packageFile.DataBuffer = updatedJsonData
+	//about.js////////////////////////////////////
 	aboutFile, err := asarSys.GetFile(filepath.Join("renderer", "about.js"))
 	if err != nil {
 		return err
 	}
-	newAboutFileString := FixAboutVersion(string(*aboutFile.DataBuffer))
-	*aboutFile.DataBuffer = []byte(newAboutFileString)
-
-	//修改dialog-gift-card.js文件
+	newAboutFileString := fixAboutVersion(string(*aboutFile.DataBuffer))
+	fileAdd([]byte(newAboutFileString), "renderer", "aboutt.js", asarSys)
+	//dialog-gift-card.js/////////////////////////
 	giftFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-gift-card.js"))
 	if err != nil {
 		return err
 	}
-	newGiftFileString := FixDialogGiftCard(string(*giftFile.DataBuffer))
-	*giftFile.DataBuffer = []byte(newGiftFileString)
-
-	//修改dialog-signin.js
-	signinFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-signin.js"))
-	if err != nil {
-		return err
-	}
-	signin, _ := asset.ReadFile("asset/" + "dialog-signin.js")
-	signinFile.DataBuffer = &signin
-
-	//修改runtime.js文件
+	newGiftFileString := fixDialogGiftCard(string(*giftFile.DataBuffer))
+	fileAdd([]byte(newGiftFileString), "renderer", "dialog-gift-cardd.js", asarSys)
+	//dialog-signin.js///////////////////////////
+	filePatch("renderer", "dialog-signin.js", "dialog-signinn.js",
+		asarSys)
+	//runtime.js/////////////////////////////////
 	runtimeFile, err := asarSys.GetFile(filepath.Join("renderer", "runtime.js"))
 	if err != nil {
 		return err
 	}
 	newRuntimeFileString := strings.Replace(string(*runtimeFile.DataBuffer), `"use strict";`, `"use strict";require("./336784");`, 1)
-	newRuntimeDate := []byte(newRuntimeFileString)
-	*runtimeFile.DataBuffer = newRuntimeDate
+	newRuntimeData := []byte(newRuntimeFileString)
+	*runtimeFile.DataBuffer = newRuntimeData
+	//xmind,js////////////////////////////////////
+	filePatch("main", "xmind.js", "xmind.js",
+		asarSys)
+	//crypto.js///////////////////////////////////
+	filePatch("renderer", "crypto.js", "336784.js",
+		asarSys)
 
-	//增加xmind,js
-	patchFile("main", "xmind.js", asarSys, "xmind.js")
-	//增加336784.js
-	patchFile("renderer", "crypto.js", asarSys, "336784.js")
-	newAppAsar := asarSys.CreateAsar(AsarFile)
-	err = newAppAsar.Save()
+	//gift.html///////////////////////////////////
+	giftHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-gift-card.html"))
 	if err != nil {
+		return err
+	}
+	newGiftHtmlString := strings.Replace(string(*giftHtmlFile.DataBuffer), `dialog-gift-card`, `dialog-gift-cardd`, 1)
+	newGiftHtmlData := []byte(newGiftHtmlString)
+	*giftHtmlFile.DataBuffer = newGiftHtmlData
+	//about.html//////////////////////////////////
+	aboutHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "about.html"))
+	if err != nil {
+		return err
+	}
+	newAboutHtmlString := strings.Replace(string(*aboutHtmlFile.DataBuffer), `about`, `aboutt`, 1)
+	newAboutHtmlData := []byte(newAboutHtmlString)
+	*aboutHtmlFile.DataBuffer = newAboutHtmlData
+	//login.html//////////////////////////////////
+	signHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-signin.html"))
+	if err != nil {
+		return err
+	}
+	newSignHtmlString := strings.Replace(string(*signHtmlFile.DataBuffer), `dialog-signin`, `dialog-signinn`, 1)
+	newSignHtmlData := []byte(newSignHtmlString)
+	*signHtmlFile.DataBuffer = newSignHtmlData
+
+	//保存Asar文件
+	if err = saveAsar(); err != nil {
 		return err
 	}
 	return nil
 }
-func patchFile(pDir string, fileName string, sys *goasar.SimpleFileSystem, alias string) {
-	initDate, _ := asset.ReadFile("asset/" + fileName)
-	initFile := goasar.Afile{
-		Offset:     "",
-		Size:       float64(len(initDate)),
-		Unpacked:   false,
-		Path:       filepath.Join(pDir, alias),
-		IsDir:      false,
-		DataBuffer: &initDate,
-	}
-	sys.CreateFile(&initFile)
-}
+
 func Restore() error {
-	// 检查备份文件是否存在
-	if !FileExists(asarBackupFile) {
-		//不存在说明已经恢复了
-		return nil
+	if !isFix() {
+		return errors.New("xmind has been restored")
 	}
-	// 删除被修改的文件
-	if FileExists(AsarFile) {
-		err := os.Remove(AsarFile)
-		if err != nil {
-			return err
-		}
+	if err := checkEnv(); err != nil {
+		return err
 	}
-	//恢复备份文件
-	_ = os.Rename(asarBackupFile, AsarFile)
+	//main/main.js
+	packageJson["version"] = packageJson["buildVersion"]
+	packageJson["main"] = "main/main.js"
+	//修改package.json文件
+	packageFile, err := asarSys.GetFile("package.json")
+	if err != nil {
+		return err
+	}
+	updatedJsonData, err := json.Marshal(packageJson)
+	*packageFile.DataBuffer = updatedJsonData
+
+	//gift.html///////////////////////////////////
+	giftHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-gift-card.html"))
+	if err != nil {
+		return err
+	}
+	newGiftHtmlString := strings.Replace(string(*giftHtmlFile.DataBuffer), `dialog-gift-cardd`, `dialog-gift-card`, 1)
+	newGiftHtmlData := []byte(newGiftHtmlString)
+	*giftHtmlFile.DataBuffer = newGiftHtmlData
+	//about.html//////////////////////////////////
+	aboutHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "about.html"))
+	if err != nil {
+		return err
+	}
+	newAboutHtmlString := strings.Replace(string(*aboutHtmlFile.DataBuffer), `aboutt`, `about`, 1)
+	newAboutHtmlData := []byte(newAboutHtmlString)
+	*aboutHtmlFile.DataBuffer = newAboutHtmlData
+	//login.html//////////////////////////////////
+	signHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-signin.html"))
+	if err != nil {
+		return err
+	}
+	newSignHtmlString := strings.Replace(string(*signHtmlFile.DataBuffer), `dialog-signinn`, `dialog-signin`, 1)
+	newSignHtmlData := []byte(newSignHtmlString)
+	*signHtmlFile.DataBuffer = newSignHtmlData
+
+	//保存Asar文件
+	if err = saveAsar(); err != nil {
+		return err
+	}
 	return nil
 }
-func FixDialogGiftCard(jsCode string) string {
+
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
+
+func fixDialogGiftCard(jsCode string) string {
 	card, _ := asset.ReadFile("asset/" + "dialog-gift-card.fix.js")
 	re := regexp.MustCompile(`handleRedeem\.*:`)
 	// 使用 ReplaceAllStringFunc 进行替换
@@ -150,15 +210,62 @@ func FixDialogGiftCard(jsCode string) string {
 	return fixStr
 }
 
-func FixAboutVersion(jsCode string) string {
+func fixAboutVersion(jsCode string) string {
 	re := regexp.MustCompile(`formatBuildNumber\.*:`)
 	return re.ReplaceAllString(jsCode, `formatBuildNumber: () =>(new Date().getFullYear().toString().slice(-2) + '.' + (new Date().getMonth() + 1).toString().padStart(2, '0') + '.10310'),abc:`)
 }
 
-func FileExists(filename string) bool {
-	info, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		return false
+func filePatch(pDir string, srcFileName string, filename2sys string, sys *goasar.SimpleFileSystem) {
+	file2Patch, _ := asset.ReadFile("asset/" + srcFileName)
+	fileData := goasar.Afile{
+		Offset:     "",
+		Size:       float64(len(file2Patch)),
+		Unpacked:   false,
+		Path:       filepath.Join(pDir, filename2sys),
+		IsDir:      false,
+		DataBuffer: &file2Patch,
 	}
-	return !info.IsDir()
+	sys.CreateFile(&fileData)
+}
+
+func fileAdd(bytes []byte, pDir string, filename2sys string, sys *goasar.SimpleFileSystem) {
+	fileData := goasar.Afile{
+		Offset:     "",
+		Size:       float64(len(bytes)),
+		Unpacked:   false,
+		Path:       filepath.Join(pDir, filename2sys),
+		IsDir:      false,
+		DataBuffer: &bytes,
+	}
+	sys.CreateFile(&fileData)
+}
+
+func saveAsar() error {
+	newAppAsar := asarSys.CreateAsar(AsarFile)
+	err := newAppAsar.Save()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// 比较两个版本号
+func isValidVersion(version string) bool {
+	v1Parts := strings.Split(version, ".")
+	v2Parts := strings.Split(ValidVersion, ".")
+	var v1, v2 int
+	for i := 0; i < len(v1Parts) || i < len(v2Parts); i++ {
+		if i < len(v1Parts) {
+			v1, _ = strconv.Atoi(v1Parts[i]) // 转换为整数
+		}
+		if i < len(v2Parts) {
+			v2, _ = strconv.Atoi(v2Parts[i]) // 转换为整数
+		}
+		if v1 < v2 {
+			return false
+		} else if v1 > v2 {
+			return true
+		}
+	}
+	return true
 }

@@ -55,7 +55,6 @@ func (fs *SimpleFileSystem) DeleteFile(path string) error {
 	return nil
 }
 
-// ListFiles 遍历文件
 func (fs *SimpleFileSystem) ListFiles() {
 	for _, file := range fs.directories {
 		if file.Unpacked {

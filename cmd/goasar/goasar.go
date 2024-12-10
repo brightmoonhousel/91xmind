@@ -87,8 +87,8 @@ func (asar *Asar) Open() error {
 	asar.DataBuffer = &buffer
 	return nil
 }
-func (asar *Asar) Save() error {
 
+func (asar *Asar) Save() error {
 	fp, err := os.Create(asar.path)
 	defer fp.Close()
 	if err != nil {
@@ -100,17 +100,20 @@ func (asar *Asar) Save() error {
 	headData[2] = asar.JsonHeaderSize
 	headData[3] = asar.JsonHeaderLength
 	//写入头文件
-	if err := binary.Write(fp, binary.LittleEndian, &headData); err != nil {
+	if err = binary.Write(fp, binary.LittleEndian, &headData); err != nil {
 		return err
 	}
 	//写入json字符串
-	fp.Write(*asar.JsonHeaderStrBytes)
+	_, err = fp.Write(*asar.JsonHeaderStrBytes)
 	//还要向上取填充00 补齐为4的倍数
 	paddingLength := (4 - asar.JsonHeaderLength%4) % 4
 	if paddingLength > 0 {
-		fp.Write(make([]byte, paddingLength))
+		_, err = fp.Write(make([]byte, paddingLength))
 	}
 	//写入二进制数据
-	fp.Write(*asar.DataBuffer)
+	_, err = fp.Write(*asar.DataBuffer)
+	if err != nil {
+		return err
+	}
 	return nil
 }
