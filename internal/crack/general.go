@@ -1,4 +1,4 @@
-package xmindFix
+package xmindcrack
 
 import (
 	"embed"
@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"xmindActive/cmd/goasar"
+	goAsarTool "xmindcli/internal/goasar"
 )
 
 //go:embed asset/*
@@ -19,29 +19,24 @@ var asset embed.FS
 var ValidVersion = "24.10.01101"
 
 var (
-	XmindExe           string // xmind.exe路径
-	asarDir            string // asar所在文件夹目录
-	AsarFile           string // asar文件目录
-	asarSys            *goasar.SimpleFileSystem
-	packageJson        map[string]interface{}
-	fixHtmlFileNameMap = map[string]string{
-		"dialog-signin.html":    "dialog-signin.js",
-		"about.html":            "about.js",
-		"dialog-gift-card.html": "dialog-gift-card.js",
-	}
+	XmindExe    string // xmind.exe路径
+	asarDir     string // asar所在文件夹目录
+	AsarFile    string // asar文件目录
+	asarSys     *goAsarTool.SimpleFileSystem
+	packageJson map[string]interface{}
 )
 
 // Prepare 初始化
 func Prepare() error {
-	if err := checkEnv(); err != nil {
+	if err := CheckEnv(); err != nil {
 		return err
 	}
-	appAsar := goasar.NewAsarFile(AsarFile)
+	appAsar := goAsarTool.NewAsarFile(AsarFile)
 	err := appAsar.Open()
 	if err != nil {
 		return err
 	}
-	asarSys, err = goasar.NewSimpleFileSystemByAsar(appAsar)
+	asarSys, err = goAsarTool.NewSimpleFileSystemByAsar(appAsar)
 	if err != nil {
 		return err
 	}
@@ -67,10 +62,10 @@ func StartPatch() error {
 	if isFix() {
 		return errors.New("xmind has changed")
 	}
-	if err := checkEnv(); err != nil {
+	if err := CheckEnv(); err != nil {
 		return err
 	}
-	//package.json////////////////////////////////
+	//package.json------------------------------
 	packageJson["main"] = "main/xmind.js"
 	packageJson["version"] = "224.09.10311"
 	packageFile, err := asarSys.GetFile("package.json")
@@ -79,24 +74,24 @@ func StartPatch() error {
 	}
 	updatedJsonData, err := json.Marshal(packageJson)
 	*packageFile.DataBuffer = updatedJsonData
-	//about.js////////////////////////////////////
+	//about.js----------------------------------
 	aboutFile, err := asarSys.GetFile(filepath.Join("renderer", "about.js"))
 	if err != nil {
 		return err
 	}
 	newAboutFileString := fixAboutVersion(string(*aboutFile.DataBuffer))
 	fileAdd([]byte(newAboutFileString), "renderer", "aboutt.js", asarSys)
-	//dialog-gift-card.js/////////////////////////
+	//dialog-gift-card.js-----------------------
 	giftFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-gift-card.js"))
 	if err != nil {
 		return err
 	}
 	newGiftFileString := fixDialogGiftCard(string(*giftFile.DataBuffer))
 	fileAdd([]byte(newGiftFileString), "renderer", "dialog-gift-cardd.js", asarSys)
-	//dialog-signin.js///////////////////////////
+	//dialog-signin.js--------------------------
 	filePatch("renderer", "dialog-signin.js", "dialog-signinn.js",
 		asarSys)
-	//runtime.js/////////////////////////////////
+	//runtime.js--------------------------------
 	runtimeFile, err := asarSys.GetFile(filepath.Join("renderer", "runtime.js"))
 	if err != nil {
 		return err
@@ -104,14 +99,14 @@ func StartPatch() error {
 	newRuntimeFileString := strings.Replace(string(*runtimeFile.DataBuffer), `"use strict";`, `"use strict";require("./336784");`, 1)
 	newRuntimeData := []byte(newRuntimeFileString)
 	*runtimeFile.DataBuffer = newRuntimeData
-	//xmind,js////////////////////////////////////
+	//xmind,js--------------------------------
 	filePatch("main", "xmind.js", "xmind.js",
 		asarSys)
-	//crypto.js///////////////////////////////////
+	//crypto.js--------------------------------
 	filePatch("renderer", "crypto.js", "336784.js",
 		asarSys)
 
-	//gift.html///////////////////////////////////
+	//gift.html--------------------------------
 	giftHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-gift-card.html"))
 	if err != nil {
 		return err
@@ -119,7 +114,7 @@ func StartPatch() error {
 	newGiftHtmlString := strings.Replace(string(*giftHtmlFile.DataBuffer), `dialog-gift-card`, `dialog-gift-cardd`, 1)
 	newGiftHtmlData := []byte(newGiftHtmlString)
 	*giftHtmlFile.DataBuffer = newGiftHtmlData
-	//about.html//////////////////////////////////
+	//about.html--------------------------------
 	aboutHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "about.html"))
 	if err != nil {
 		return err
@@ -127,7 +122,7 @@ func StartPatch() error {
 	newAboutHtmlString := strings.Replace(string(*aboutHtmlFile.DataBuffer), `about`, `aboutt`, 1)
 	newAboutHtmlData := []byte(newAboutHtmlString)
 	*aboutHtmlFile.DataBuffer = newAboutHtmlData
-	//login.html//////////////////////////////////
+	//login.html--------------------------------
 	signHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-signin.html"))
 	if err != nil {
 		return err
@@ -147,7 +142,7 @@ func Restore() error {
 	if !isFix() {
 		return errors.New("xmind has been restored")
 	}
-	if err := checkEnv(); err != nil {
+	if err := CheckEnv(); err != nil {
 		return err
 	}
 	//main/main.js
@@ -161,7 +156,7 @@ func Restore() error {
 	updatedJsonData, err := json.Marshal(packageJson)
 	*packageFile.DataBuffer = updatedJsonData
 
-	//gift.html///////////////////////////////////
+	//gift.html--------------------------------
 	giftHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-gift-card.html"))
 	if err != nil {
 		return err
@@ -169,7 +164,7 @@ func Restore() error {
 	newGiftHtmlString := strings.Replace(string(*giftHtmlFile.DataBuffer), `dialog-gift-cardd`, `dialog-gift-card`, 1)
 	newGiftHtmlData := []byte(newGiftHtmlString)
 	*giftHtmlFile.DataBuffer = newGiftHtmlData
-	//about.html//////////////////////////////////
+	//about.html--------------------------------
 	aboutHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "about.html"))
 	if err != nil {
 		return err
@@ -177,7 +172,7 @@ func Restore() error {
 	newAboutHtmlString := strings.Replace(string(*aboutHtmlFile.DataBuffer), `aboutt`, `about`, 1)
 	newAboutHtmlData := []byte(newAboutHtmlString)
 	*aboutHtmlFile.DataBuffer = newAboutHtmlData
-	//login.html//////////////////////////////////
+	//login.html--------------------------------
 	signHtmlFile, err := asarSys.GetFile(filepath.Join("renderer", "dialog-signin.html"))
 	if err != nil {
 		return err
@@ -215,9 +210,9 @@ func fixAboutVersion(jsCode string) string {
 	return re.ReplaceAllString(jsCode, `formatBuildNumber: () =>(new Date().getFullYear().toString().slice(-2) + '.' + (new Date().getMonth() + 1).toString().padStart(2, '0') + '.10310'),abc:`)
 }
 
-func filePatch(pDir string, srcFileName string, filename2sys string, sys *goasar.SimpleFileSystem) {
+func filePatch(pDir string, srcFileName string, filename2sys string, sys *goAsarTool.SimpleFileSystem) {
 	file2Patch, _ := asset.ReadFile("asset/" + srcFileName)
-	fileData := goasar.Afile{
+	fileData := goAsarTool.Afile{
 		Offset:     "",
 		Size:       float64(len(file2Patch)),
 		Unpacked:   false,
@@ -228,8 +223,8 @@ func filePatch(pDir string, srcFileName string, filename2sys string, sys *goasar
 	sys.CreateFile(&fileData)
 }
 
-func fileAdd(bytes []byte, pDir string, filename2sys string, sys *goasar.SimpleFileSystem) {
-	fileData := goasar.Afile{
+func fileAdd(bytes []byte, pDir string, filename2sys string, sys *goAsarTool.SimpleFileSystem) {
+	fileData := goAsarTool.Afile{
 		Offset:     "",
 		Size:       float64(len(bytes)),
 		Unpacked:   false,

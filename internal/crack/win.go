@@ -1,6 +1,6 @@
 //go:build windows
 
-package xmindFix
+package xmindcrack
 
 import (
 	"errors"
@@ -24,7 +24,7 @@ func KillProcessByName(processName string) {
 	_ = cmd.Run()
 }
 
-func checkEnv() error {
+func CheckEnv() error {
 	// 正在改变则检查Xmind是否存在
 	if !fileExists(AsarFile) {
 		return errors.New("xmind is not installed")

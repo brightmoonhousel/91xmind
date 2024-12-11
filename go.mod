@@ -1,3 +1,3 @@
-module xmindActive
+module xmindcli
 
 go 1.21
