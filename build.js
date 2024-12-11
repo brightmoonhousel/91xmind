@@ -3,18 +3,18 @@ const path = require("path");
 const os = require("os");
 const { Console } = require("console");
 
-// 获取当前脚本所在目录
+
 const scriptPath = __dirname;
 const xmindHookPath = path.join(scriptPath, "xmind_hook");
 const xmindCliPath = path.join(scriptPath, "xmindcli");
 const xmindAdminPath = path.join(scriptPath, "auth_admin");
 const xmindApiPath = path.join(scriptPath, "auth_api");
 
-// 执行命令的函数
+
 function runCommand(command, cwd = null) {
   try {
     const result = execSync(command, { cwd, stdio: "pipe" });
-    console.log(result.toString()); // 输出命令执行结果
+    console.log(result.toString()); 
   } catch (error) {
     console.error(`命令执行失败: ${error.cmd}`);
     console.error(`错误信息: ${error.stderr}`);
@@ -25,48 +25,48 @@ function runCommand(command, cwd = null) {
 // 编译hook文件
 function buildHook() {
   runCommand("npm install", xmindHookPath); // 在xmind_hook目录下运行npm install
-  runCommand("npm run build", xmindHookPath); // 在xmind_hook目录下运行npm run build
+  runCommand("npm run build", xmindHookPath); 
+  console.log("");
 }
 
 // 编译xmindcli
 function buildXmindcli() {
-  const currentDate = new Date().toISOString().replace(/[-:.]/g, "").slice(0, 15); // 获取当前时间
+  const currentDate = new Date().toISOString().replace(/[-:.]/g, "").slice(0, 15); 
   process.env.GOARCH = "amd64";
   process.env.GOOS = "windows";
   let command = `go build -o ../bin/xmindcli_win_amd64_${currentDate}.exe -gcflags=-trimpath=$GOPATH -asmflags=-trimpath=$GOPATH -ldflags -w ${xmindCliPath}/cmd`;
   runCommand(command, xmindCliPath);
-  // 设置为Darwin平台（macOS）
   process.env.GOOS = "darwin";
   command = `go build -o ../bin/xmindcli_darwin_amd64_${currentDate} -gcflags=-trimpath=$GOPATH -asmflags=-trimpath=$GOPATH -ldflags -w ${xmindCliPath}/cmd`;
   runCommand(command, xmindCliPath);
   console.log("xmindcli Build succeeded!");
   console.log("output path: " + path.join(xmindCliPath, "../bin"));
+  console.log("");
 }
 
 // 编译xmind_admin
 function buildXmindAdmin() {
-  runCommand("npm install", xmindAdminPath); // 在xmind_admin目录下运行npm install
-  runCommand("npm run build", xmindAdminPath); // 在xmind_admin目录下运行npm run build
+  runCommand("npm install", xmindAdminPath); 
+  runCommand("npm run build", xmindAdminPath); 
   console.log("请依次输入命令:");
-  console.log(`cd ${xmindAdminPath} & npx wrangler pages project create`);
+  console.log(`cd ${xmindAdminPath}`);
+  console.log("npx wrangler pages project create");
   console.log("npx wrangler pages deploy dist");
-  process.exit(0); // 退出程序
+  process.exit(0);
 }
 
 // 编译xmind_api
 function buildXmindApi() {
-  runCommand("npm install", xmindApiPath); // 在xmind_api目录下运行npm install
-  runCommand("npx wrangler d1 create d1-xmind", xmindApiPath); // 创建d1
-  runCommand("npx wrangler d1 execute d1-xmind --file=./src/db/db.sql", xmindApiPath); // 创建d1
-  Console.log(
-    "请将生成的 database_id 类似于【xxxxxxxx-xxxx-xxxx-93ba-5025ba4fb5c5】替换到auth_api\\wrangler.toml"
-  );
-  Console.log("然后再执行:");
-  Console.log(`cd ${xmindApiPath} & npx wrangler deploy --minify src/index.ts`);
-  process.exit(0); // 退出程序
+  runCommand("npm install", xmindApiPath); 
+  console.log("请依次输入命令:");
+  Console.log(`cd ${xmindApiPath}`);
+  runCommand("npx wrangler d1 create d1-xmind", xmindApiPath);
+  runCommand("npx wrangler d1 execute d1-xmind --file=./src/db/db.sql", xmindApiPath);
+  runCommand("npx wrangler deploy --minify src/index.ts", xmindApiPath);
+  process.exit(0); 
 }
 
-// 用Promise封装标准输入
+
 function promptUser(question) {
   return new Promise((resolve) => {
     process.stdout.write(question);
@@ -102,7 +102,7 @@ async function mainMenu() {
         break;
       case "5":
         console.log("退出");
-        process.exit(0); // 退出程序
+        process.exit(0); 
       default:
         console.log("无效的选择，请重新输入。");
         break;
