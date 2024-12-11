@@ -1,0 +1,28 @@
+name = "xmind-api"
+compatibility_date = "2024-05-13"
+[dev]
+port = 8787  # 设置本地开发端口为3000，可以根据需要修改
+
+[vars]
+Latest_Version = "24.04.10311"
+JWT_SECRET = "fucktencent"
+JWT_EXP = 1440 # one/minutes
+
+[[d1_databases]]
+binding = "DB" # i.e. available in your Worker on env.DB
+database_name = "d1-xmind"
+database_id = "c640b790-6831-44cb-93ba-5025ba4fb5c5"
+
+
+
+# [[kv_namespaces]]
+# binding = "MY_KV_NAMESPACE"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# [[r2_buckets]]
+# binding = "MY_BUCKET"
+# bucket_name = "my-bucket"
+
+
+# [ai]
+# binding = "AI"
