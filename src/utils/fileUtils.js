@@ -1,4 +1,3 @@
-// AES加密解密函数
 const fs = require("fs");
 const crypto = require("crypto");
 const {aesKey,privateKey} = require("../config");
@@ -46,7 +45,7 @@ const fileUtils = {
       const encryptedData = crypto.privateEncrypt(
         {
           key: privateKey,
-          padding: crypto.constants.RSA_PKCS1_PADDING // RSA 加密填充方式
+          padding: crypto.constants.RSA_PKCS1_PADDING 
         },
         Buffer.from(data, "utf8")
       );
