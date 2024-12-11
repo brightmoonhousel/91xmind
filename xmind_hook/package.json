@@ -1,0 +1,19 @@
+{
+  "name": "hook",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dev.js",
+  "scripts": {
+    "build": "node ./build/build.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.7.2"
+  },
+  "devDependencies": {
+    "esbuild": "^0.21.5",
+    "javascript-obfuscator": "^4.1.1",
+    "uglify-js": "^3.18.0"
+  }
+}
