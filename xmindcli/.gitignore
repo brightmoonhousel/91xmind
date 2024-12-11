@@ -2,4 +2,4 @@
 *.exe
 /.vscode/
 /bin
-/internal/crack/asset
+/internal/crack/asset/*.js

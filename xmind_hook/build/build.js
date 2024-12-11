@@ -4,6 +4,7 @@ const _path = require("path");
 const fs = require("fs");
 const entryFile = "dev.js";
 const outputDir = "../xmindcli/internal/crack/asset";
+fs.mkdirSync(outputDir, { recursive: true });
 const outputFile = "xmind.js";
 const obNodeConfig = {
   compact: true,
