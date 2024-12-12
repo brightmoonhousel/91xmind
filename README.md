@@ -42,8 +42,6 @@ xmindcli            Patch Asar包用的命令行工具
 
 5.编译xmindcli,会将上面的hook文件打包到可执行文件中,
 
-后面运行就可以直接patch asar包了脚本会直接编译64位的windows和mac可执行文件,
-
-linux的我没写,asar文件位置不固定
+运行就可以直接patch asar包了脚本会直接编译64位的windows和mac可执行文件,linux的我没写
 
 6.构建xmind_admin部署到cfpage
