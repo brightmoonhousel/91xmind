@@ -32,8 +32,12 @@
       <el-form-item label="生成个数" prop="count" placeholder="请输入设备码">
         <el-input v-model.number="addFormModel.count"></el-input>
         <el-button type="primary" size="small" @click="addFormModel.count = 10">10个</el-button>
-        <el-button type="primary" size="small" @click="addFormModel.count = 20">20个</el-button>
-        <el-button type="primary" size="small" @click="addFormModel.count = 100">100个</el-button>
+        <el-button type="primary" size="small" @click="addFormModel.count = 20" disabled
+          >20个</el-button
+        >
+        <el-button type="primary" size="small" @click="addFormModel.count = 100" disabled
+          >100个</el-button
+        >
       </el-form-item>
       <el-form-item label="激活天数" prop="days">
         <el-input v-model.number="addFormModel.days"></el-input>
