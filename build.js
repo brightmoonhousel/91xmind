@@ -46,7 +46,7 @@ function buildXmindcli() {
 function buildXmindAdmin() {
   runCommand("npm install", xmindAdminPath);
   runCommand("npm run build", xmindAdminPath);
-  console.log("请依次输入命令:");
+  console.log("请依次输入下面命令:");
   console.log(`cd ${xmindAdminPath}`);
   console.log("npx wrangler pages project create");
   console.log("npx wrangler pages deploy dist");
@@ -56,9 +56,10 @@ function buildXmindAdmin() {
 // 编译xmind_api
 function buildXmindApi() {
   runCommand("npm install", xmindApiPath);
-  console.log("依次输入下面命令,会出现链接登录cloudflare的提示:");
+  console.log("依次输入下面命令:");
   console.log(`cd ${xmindApiPath}`);
   console.log("npx wrangler d1 create d1-xmind");
+  console.log(`上面这个命令会生成id,自行替换auth_api\\wrangler.toml的database_id字段`);
   console.log("npx wrangler d1 execute d1-xmind --file=./src/db/db.sql");
   console.log("npx wrangler deploy --minify src/index.ts");
   process.exit(0);
