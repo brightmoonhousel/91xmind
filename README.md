@@ -30,6 +30,8 @@ auth_api           后端授权验证接口
 xmind_hook     **$%^$
 xmindcli            Patch Asar包用的命令行工具
 
+部署脚本都写好了 node build.js 按顺序就行
+
 1.用cfworker部署auth_api并自定义域名 
 
 2.替换auth_admin/.env.production内的域名为上述域名
@@ -38,6 +40,10 @@ xmindcli            Patch Asar包用的命令行工具
 
 4.构建xmind_hook文件,编译后的文件保存在xmindcli/internal/crack/asset
 
-5.编译xmindcli,会将上面的hook文件打包到可执行文件中,后面运行就可以直接patch asar包了
+5.编译xmindcli,会将上面的hook文件打包到可执行文件中,
+
+后面运行就可以直接patch asar包了脚本会直接编译64位的windows和mac可执行文件,
+
+linux的我没写,asar文件位置不固定
 
 6.构建xmind_admin部署到cfpage
