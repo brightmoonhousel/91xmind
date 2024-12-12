@@ -3,18 +3,16 @@ const path = require("path");
 const os = require("os");
 const { Console } = require("console");
 
-
 const scriptPath = __dirname;
 const xmindHookPath = path.join(scriptPath, "xmind_hook");
 const xmindCliPath = path.join(scriptPath, "xmindcli");
 const xmindAdminPath = path.join(scriptPath, "auth_admin");
 const xmindApiPath = path.join(scriptPath, "auth_api");
 
-
 function runCommand(command, cwd = null) {
   try {
     const result = execSync(command, { cwd, stdio: "pipe" });
-    console.log(result.toString()); 
+    console.log(result.toString());
   } catch (error) {
     console.error(`命令执行失败: ${error.cmd}`);
     console.error(`错误信息: ${error.stderr}`);
@@ -25,13 +23,13 @@ function runCommand(command, cwd = null) {
 // 编译hook文件
 function buildHook() {
   runCommand("npm install", xmindHookPath); // 在xmind_hook目录下运行npm install
-  runCommand("npm run build", xmindHookPath); 
+  runCommand("npm run build", xmindHookPath);
   console.log("");
 }
 
 // 编译xmindcli
 function buildXmindcli() {
-  const currentDate = new Date().toISOString().replace(/[-:.]/g, "").slice(0, 15); 
+  const currentDate = new Date().toISOString().replace(/[-:.]/g, "").slice(0, 15);
   process.env.GOARCH = "amd64";
   process.env.GOOS = "windows";
   let command = `go build -o ../bin/xmindcli_win_amd64_${currentDate}.exe -gcflags=-trimpath=$GOPATH -asmflags=-trimpath=$GOPATH -ldflags -w ${xmindCliPath}/cmd`;
@@ -46,8 +44,8 @@ function buildXmindcli() {
 
 // 编译xmind_admin
 function buildXmindAdmin() {
-  runCommand("npm install", xmindAdminPath); 
-  runCommand("npm run build", xmindAdminPath); 
+  runCommand("npm install", xmindAdminPath);
+  runCommand("npm run build", xmindAdminPath);
   console.log("请依次输入命令:");
   console.log(`cd ${xmindAdminPath}`);
   console.log("npx wrangler pages project create");
@@ -57,15 +55,14 @@ function buildXmindAdmin() {
 
 // 编译xmind_api
 function buildXmindApi() {
-  runCommand("npm install", xmindApiPath); 
-  console.log("请依次输入命令:");
-  Console.log(`cd ${xmindApiPath}`);
-  runCommand("npx wrangler d1 create d1-xmind", xmindApiPath);
-  runCommand("npx wrangler d1 execute d1-xmind --file=./src/db/db.sql", xmindApiPath);
-  runCommand("npx wrangler deploy --minify src/index.ts", xmindApiPath);
-  process.exit(0); 
+  runCommand("npm install", xmindApiPath);
+  console.log("依次输入下面命令,会出现链接登录cloudflare的提示:");
+  console.log(`cd ${xmindApiPath}`);
+  console.log("npx wrangler d1 create d1-xmind");
+  console.log("npx wrangler d1 execute d1-xmind --file=./src/db/db.sql");
+  console.log("npx wrangler deploy --minify src/index.ts");
+  process.exit(0);
 }
-
 
 function promptUser(question) {
   return new Promise((resolve) => {
@@ -79,30 +76,30 @@ function promptUser(question) {
 // 主菜单
 async function mainMenu() {
   while (true) {
-    console.log("1. 编译hook文件");
-    console.log("2. 编译xmindcli");
-    console.log("3. 编译xmind_admin");
-    console.log("4. 编译xmind_api");
+    console.log("1. 构建xmind_api");
+    console.log("2. 构建xmind_hook");
+    console.log("3. 编译xmindcli");
+    console.log("4. 构建xmind_admin");
     console.log("5. 退出");
 
     const choice = await promptUser("请输入对应数字,按回车确认: ");
 
     switch (choice) {
       case "1":
-        await buildHook();
+        await buildXmindApi();
         break;
       case "2":
-        await buildXmindcli();
+        await buildHook();
         break;
       case "3":
-        await buildXmindAdmin();
+        await buildXmindcli();
         break;
       case "4":
-        await buildXmindApi();
+        await buildXmindAdmin();
         break;
       case "5":
         console.log("退出");
-        process.exit(0); 
+        process.exit(0);
       default:
         console.log("无效的选择，请重新输入。");
         break;
