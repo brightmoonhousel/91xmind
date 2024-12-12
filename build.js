@@ -48,7 +48,6 @@ function buildXmindAdmin() {
   runCommand("npm run build", xmindAdminPath);
   console.log("请依次输入下面命令:");
   console.log(`cd ${xmindAdminPath}`);
-  console.log("npx wrangler pages project create");
   console.log("npx wrangler pages deploy dist");
   process.exit(0);
 }
