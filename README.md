@@ -24,11 +24,12 @@ password:`123456@`
 
 ------
 
+```
 私有部署说明:
 auth_admin      授权码管理页面
-auth_api           后端授权验证接口
-xmind_hook     **$%^$
-xmindcli            Patch Asar包用的命令行工具
+auth_api        后端授权验证接口
+xmind_hook      ****
+xmindcli        Patch Asar包用的命令行工具
 
 部署脚本都写好了 node build.js 按顺序就行
 
@@ -45,3 +46,5 @@ xmindcli            Patch Asar包用的命令行工具
 运行就可以直接patch asar包了脚本会直接编译64位的windows和mac可执行文件,linux的我没写
 
 6.构建xmind_admin部署到cfpage
+```
+
